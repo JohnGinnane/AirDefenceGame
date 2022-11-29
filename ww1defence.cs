@@ -11,8 +11,8 @@ namespace ww1defence {
 
         DateTime lastUpdate;
         DateTime lastRender;
-        float timeStep = 1000.0f / 60f;
-        float frameRate = 1000.0f / 60f;
+        float timeStep = 1f / 60f;
+        float frameRate = 1f / 60f;
 
         private Sprite sprCrosshair;
         private Texture textureSpritesheet;
@@ -24,6 +24,10 @@ namespace ww1defence {
         private CircleShape csOuterFlakZone;
 
         private float flakTime = 0f;
+
+        private DateTime lastFire;
+        private float fireRate = 1000f / 4f;
+        private List<shell> shells;
 #endregion
 
         public ww1defence() {
@@ -62,6 +66,10 @@ namespace ww1defence {
             csOuterFlakZone.OutlineColor = Color.Red;
             csOuterFlakZone.FillColor = Color.Transparent;
 
+            lastFire = DateTime.Now;
+            fireRate = 1000 / 10; 
+            shells = new List<shell>();
+
             lastUpdate = DateTime.Now;
             lastRender = DateTime.Now;
         }
@@ -74,10 +82,12 @@ namespace ww1defence {
         public void window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e) {
             if (e == null) { return; }
 
+            float scrollSpeed = 2.5f;
+
             if (e.Delta > 0 && flakTime < 100.0f) {
-                flakTime += e.Delta * 2;
+                flakTime += e.Delta * scrollSpeed;
             } else if (e.Delta < 0 && flakTime > 0.0f) {
-                flakTime += e.Delta * 2;
+                flakTime += e.Delta * scrollSpeed;
             }
 
             if (flakTime < 0) { flakTime = 0; }
@@ -88,14 +98,14 @@ namespace ww1defence {
 #region "Main"
         public void run() {
             while (window.IsOpen) {
-                if (DateTime.Now > lastUpdate.AddMilliseconds(timeStep)) {
+                if (DateTime.Now > lastUpdate.AddSeconds(timeStep)) {
                     float delta = timeStep;
                     window.DispatchEvents();
                     update(delta);
                     lastUpdate = DateTime.Now;
                 }
 
-                if (DateTime.Now > lastRender.AddMilliseconds(frameRate)) {
+                if (DateTime.Now > lastRender.AddSeconds(frameRate)) {
                     draw();
                     lastRender = DateTime.Now;
                 }
@@ -108,6 +118,48 @@ namespace ww1defence {
 
             if (Input.Keyboard["escape"].isPressed) {
                 window.Close();
+            }
+
+            if (Input.Mouse["left"].isPressed) {
+                if ((DateTime.Now - lastFire).Milliseconds >= bullet.fireRate) {
+                    lastFire = DateTime.Now;
+                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(bullet));
+
+                    if (fireThis == null) {
+                        fireThis = new bullet();
+                        shells.Add(fireThis);
+                    }
+                    
+                    double radians = (-90 + sprTurretGun.Rotation) * Math.PI / 180;
+                    Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
+
+                    fireThis.fire(sprTurretGun.Position, newVel * bullet.speed);
+                }
+            }
+
+            if (Input.Mouse["right"].isPressed) {
+                if ((DateTime.Now - lastFire).Milliseconds >= flak.fireRate) {
+                    lastFire = DateTime.Now;
+                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(flak));
+                    float timer = 600 + flakTime * 50;
+
+                    if (fireThis == null) {
+                        fireThis = new flak(DateTime.Now.AddMilliseconds(timer));
+                        shells.Add(fireThis);
+                    }
+                    
+                    double radians = (-90 + sprTurretGun.Rotation) * Math.PI / 180;
+                    Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
+                    
+                    flak flakThis = (flak)fireThis;
+                    flakThis.fire(sprTurretGun.Position, newVel * flak.speed, DateTime.Now.AddMilliseconds(timer));
+                }
+            }
+
+            int k = 1;
+            foreach (shell s in shells) {
+                k++;
+                s.update(delta);
             }
         }
 
@@ -125,6 +177,10 @@ namespace ww1defence {
 
             window.Draw(sprTurretGun);
             window.Draw(sprTurretBase);
+
+            foreach(shell s in shells) {
+                s.draw(window);
+            }
 
             // Draw the flak time zone
             csInnerFlakZone.Radius = (40 + flakTime - 10) * 4f;

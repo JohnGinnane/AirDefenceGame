@@ -96,9 +96,7 @@ namespace Global {
         public mouseButton this[string name] => FindKeyIndex(name);
 
         private mouseButton FindKeyIndex(string name) {
-            mouseButton output;
-
-            output = mouseButtons.Find(x => x.name.ToLower() == name.ToLower());
+            mouseButton? output = mouseButtons.Find(x => x.name.ToLower() == name.ToLower());
 
             if (output == null) {
                 return new mouseButton("Unknown", -1);
@@ -143,9 +141,7 @@ namespace Global {
         public key this[string name] => FindKeyIndex(name);
 
         private key FindKeyIndex(string name) {
-            key output;
-
-            output = keys.Find(x => x.name.ToLower() == name.ToLower());
+            key? output = keys.Find(x => x.name.ToLower() == name.ToLower());
 
             if (output == null) {
                 return new key("Unknown", -1);
