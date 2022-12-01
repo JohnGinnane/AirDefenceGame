@@ -20,5 +20,7 @@ namespace Global {
         public static Color Grey = new Color(128, 128, 128);
         public static Color DarkGrey = new Color(64, 64, 64);
 
+        public static Color Orange = new Color(255, 127, 0);
+        public static Color Brown = new Color(128, 64, 0);
     }
 }

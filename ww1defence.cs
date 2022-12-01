@@ -19,15 +19,23 @@ namespace ww1defence {
 
         private Sprite sprTurretBase;
         private Sprite sprTurretGun;
+        private Sprite sprSmallBlimp;
 
-        private CircleShape csInnerFlakZone;
-        private CircleShape csOuterFlakZone;
+        // private CircleShape csInnerFlakZone;
+        // private CircleShape csOuterFlakZone;
+        private CircleShape csFlakZone;
+        private static float flakZoneThickness = 40f;
 
-        private float flakTime = 0f;
+        private static float minFlakTime = 50f;
+        private static float maxFlakTime = 500f;
+        private static float flakScrollSpeed = 10f;
+
+        private float flakTime = minFlakTime;
 
         private DateTime lastFire;
-        private float fireRate = 1000f / 4f;
         private List<shell> shells;
+
+        private List<enemy> enemies;
 #endregion
 
         public ww1defence() {
@@ -54,21 +62,31 @@ namespace ww1defence {
             sprTurretGun.Origin = new Vector2f(32, 32);
             sprTurretGun.Position = sprTurretBase.Position - new Vector2f(0, 32);
 
-            csInnerFlakZone = new CircleShape();
-            csInnerFlakZone.Position = sprTurretBase.Position;
-            csInnerFlakZone.OutlineThickness = 3f;
-            csInnerFlakZone.OutlineColor = Color.Red;
-            csInnerFlakZone.FillColor = Color.Transparent;
+            sprSmallBlimp = new Sprite(textureSpritesheet, new IntRect(128, 0, 128, 32*3));
+            sprSmallBlimp.Origin = new Vector2f(128/2, (32*3)/2);
 
-            csOuterFlakZone = new CircleShape();
-            csOuterFlakZone.Position = sprTurretBase.Position;
-            csOuterFlakZone.OutlineThickness = 3f;
-            csOuterFlakZone.OutlineColor = Color.Red;
-            csOuterFlakZone.FillColor = Color.Transparent;
+            // csInnerFlakZone = new CircleShape();
+            // csInnerFlakZone.Position = sprTurretBase.Position;
+            // csInnerFlakZone.OutlineThickness = 3f;
+            // csInnerFlakZone.OutlineColor = Color.Red;
+            // csInnerFlakZone.FillColor = Color.Transparent;
+
+            // csOuterFlakZone = new CircleShape();
+            // csOuterFlakZone.Position = sprTurretBase.Position;
+            // csOuterFlakZone.OutlineThickness = 3f;
+            // csOuterFlakZone.OutlineColor = Color.Red;
+            // csOuterFlakZone.FillColor = Color.Transparent;
+
+            csFlakZone = new CircleShape(0, 100);
+            csFlakZone.Position = sprTurretBase.Position;
+            csFlakZone.OutlineThickness = flakZoneThickness;
+            csFlakZone.OutlineColor = new Color(240, 50, 40, 80);
+            csFlakZone.FillColor = Color.Transparent;
 
             lastFire = DateTime.Now;
-            fireRate = 1000 / 10; 
             shells = new List<shell>();
+
+            enemies = new List<enemy>();
 
             lastUpdate = DateTime.Now;
             lastRender = DateTime.Now;
@@ -82,16 +100,27 @@ namespace ww1defence {
         public void window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e) {
             if (e == null) { return; }
 
-            float scrollSpeed = 2.5f;
-
-            if (e.Delta > 0 && flakTime < 100.0f) {
-                flakTime += e.Delta * scrollSpeed;
-            } else if (e.Delta < 0 && flakTime > 0.0f) {
-                flakTime += e.Delta * scrollSpeed;
+            if (e.Delta > 0 && flakTime < maxFlakTime) {
+                flakTime += e.Delta * flakScrollSpeed;;
+            } else if (e.Delta < 0 && flakTime > minFlakTime) {
+                flakTime += e.Delta * flakScrollSpeed;
             }
 
-            if (flakTime < 0) { flakTime = 0; }
-            if (flakTime > 100) { flakTime = 100; }
+            if (flakTime < minFlakTime) { flakTime = minFlakTime; }
+            if (flakTime > maxFlakTime) { flakTime = maxFlakTime; }
+        }
+#endregion
+
+#region "Functions"
+        public Sprite copySprite(Sprite spr) {
+            Sprite sprReturn = new Sprite(spr.Texture, spr.TextureRect);
+            sprReturn.Origin = spr.Origin;
+            sprReturn.Position = spr.Position;
+            sprReturn.Rotation = spr.Rotation;
+            sprReturn.Scale = spr.Scale;
+            sprReturn.Color = spr.Color;
+
+            return sprReturn;
         }
 #endregion
 
@@ -109,6 +138,29 @@ namespace ww1defence {
                     draw();
                     lastRender = DateTime.Now;
                 }
+            }
+        }
+
+        public void spawnEnemy() {
+            // check for spare objects not in use
+            enemy? newEnemy = enemies.Find((x) => x.isAlive == false );
+
+            int dir = util.randsign();
+            Vector2f pos = new Vector2f((dir < 0 ? Globals.ScreenSize.X - 1 : 1),
+                                        util.randint(64, (int)(Globals.ScreenSize.Y / 2)));
+            Vector2f vel = new Vector2f(dir * 30f * util.randfloat(0.9f, 1.1f), 0);
+
+            if (newEnemy == null) {
+                newEnemy = new smallBlimp(copySprite(sprSmallBlimp), pos, vel);
+                // offset the position by the width of the blimp to avoid "pop in"
+                newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
+                enemies.Add(newEnemy);
+            } else {
+                newEnemy.position = pos;
+                newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
+                newEnemy.velocity = vel;
+                newEnemy.health = newEnemy.initialHealth;
+                newEnemy.isAlive = true;
             }
         }
 
@@ -130,7 +182,7 @@ namespace ww1defence {
                         shells.Add(fireThis);
                     }
                     
-                    double radians = (-90 + sprTurretGun.Rotation) * Math.PI / 180;
+                    double radians = (-90 + sprTurretGun.Rotation + util.randfloat(-2, 2)) * Math.PI / 180;
                     Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
 
                     fireThis.fire(sprTurretGun.Position, newVel * bullet.speed);
@@ -140,15 +192,20 @@ namespace ww1defence {
             if (Input.Mouse["right"].isPressed) {
                 if ((DateTime.Now - lastFire).Milliseconds >= flak.fireRate) {
                     lastFire = DateTime.Now;
-                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(flak));
-                    float timer = 600 + flakTime * 50;
+                    shell? fireThis = shells.Find((x) =>(
+                        x.isAlive == false &&
+                        x.GetType() == typeof(flak)
+                    ));
+                    
+                    float timer = (flakTime * 1.1f - flakZoneThickness / 2f
+                                   + util.randfloat(flakZoneThickness / -2, flakZoneThickness / 2)) / flak.speed * 1000;
 
                     if (fireThis == null) {
                         fireThis = new flak(DateTime.Now.AddMilliseconds(timer));
                         shells.Add(fireThis);
                     }
                     
-                    double radians = (-90 + sprTurretGun.Rotation) * Math.PI / 180;
+                    double radians = (-90 + sprTurretGun.Rotation + util.randfloat(-2, 2)) * Math.PI / 180;
                     Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
                     
                     flak flakThis = (flak)fireThis;
@@ -156,10 +213,38 @@ namespace ww1defence {
                 }
             }
 
-            int k = 1;
+            if (Input.Keyboard["R"].justReleased) {
+                spawnEnemy();
+            }
+
             foreach (shell s in shells) {
-                k++;
                 s.update(delta);
+
+                if (!s.isAlive) { continue; }
+
+                foreach (enemy e in enemies.FindAll((x) => x.isAlive)) {                    
+                    if (s.GetType() == typeof(bullet)) {
+                        if (intersection.pointInsideRectangle(s.position, e.sprite.GetGlobalBounds())) {
+                            s.applyDamage(delta, e);
+                            break;
+                        }
+                    }
+
+                    if (s.GetType() == typeof(flak)) {
+                        flak f = (flak)s;
+
+                        if (f.explosionLife > 0) {
+                            if (intersection.circleInsideRectangle(s.position, flak.explosionSizeDefault, e.sprite.GetGlobalBounds())) {
+                                s.applyDamage(delta, e);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            foreach (enemy e in enemies) {
+                e.update(delta);
             }
         }
 
@@ -178,18 +263,26 @@ namespace ww1defence {
             window.Draw(sprTurretGun);
             window.Draw(sprTurretBase);
 
+            foreach (enemy e in enemies) {
+                e.draw(window);
+            }
+
             foreach(shell s in shells) {
                 s.draw(window);
             }
 
             // Draw the flak time zone
-            csInnerFlakZone.Radius = (40 + flakTime - 10) * 4f;
-            csInnerFlakZone.Origin = new Vector2f(csInnerFlakZone.Radius, csInnerFlakZone.Radius);
-            window.Draw(csInnerFlakZone);
+            // csInnerFlakZone.Radius = (40 + flakTime - 10) * 4f;
+            // csInnerFlakZone.Origin = new Vector2f(csInnerFlakZone.Radius, csInnerFlakZone.Radius);
+            // window.Draw(csInnerFlakZone);
 
-            csOuterFlakZone.Radius = (40 + flakTime + 10) * 4f;
-            csOuterFlakZone.Origin = new Vector2f(csOuterFlakZone.Radius, csOuterFlakZone.Radius);
-            window.Draw(csOuterFlakZone);
+            // csOuterFlakZone.Radius = (40 + flakTime + 10) * 4f;
+            // csOuterFlakZone.Origin = new Vector2f(csOuterFlakZone.Radius, csOuterFlakZone.Radius);
+            // window.Draw(csOuterFlakZone);
+            
+            csFlakZone.Radius = flakTime;
+            csFlakZone.Origin = new Vector2f(csFlakZone.Radius, csFlakZone.Radius);
+            window.Draw(csFlakZone);
 
             window.Display();
         }
