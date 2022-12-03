@@ -14,6 +14,11 @@ namespace ww1defence {
         float timeStep = 1f / 60f;
         float frameRate = 1f / 60f;
 
+        int wave = 0;
+        int enemiesToSpawn = 0;
+        DateTime nextEnemySpawn = DateTime.Now;
+        int enemiesSpawnRate = 2; // per second
+
         private Sprite sprCrosshair;
         private Texture textureSpritesheet;
 
@@ -21,8 +26,6 @@ namespace ww1defence {
         private Sprite sprTurretGun;
         private Sprite sprSmallBlimp;
 
-        // private CircleShape csInnerFlakZone;
-        // private CircleShape csOuterFlakZone;
         private CircleShape csFlakZone;
         private static float flakZoneThickness = 40f;
 
@@ -64,18 +67,6 @@ namespace ww1defence {
 
             sprSmallBlimp = new Sprite(textureSpritesheet, new IntRect(128, 0, 128, 32*3));
             sprSmallBlimp.Origin = new Vector2f(128/2, (32*3)/2);
-
-            // csInnerFlakZone = new CircleShape();
-            // csInnerFlakZone.Position = sprTurretBase.Position;
-            // csInnerFlakZone.OutlineThickness = 3f;
-            // csInnerFlakZone.OutlineColor = Color.Red;
-            // csInnerFlakZone.FillColor = Color.Transparent;
-
-            // csOuterFlakZone = new CircleShape();
-            // csOuterFlakZone.Position = sprTurretBase.Position;
-            // csOuterFlakZone.OutlineThickness = 3f;
-            // csOuterFlakZone.OutlineColor = Color.Red;
-            // csOuterFlakZone.FillColor = Color.Transparent;
 
             csFlakZone = new CircleShape(0, 100);
             csFlakZone.Position = sprTurretBase.Position;
@@ -122,23 +113,19 @@ namespace ww1defence {
 
             return sprReturn;
         }
-#endregion
 
-#region "Main"
-        public void run() {
-            while (window.IsOpen) {
-                if (DateTime.Now > lastUpdate.AddSeconds(timeStep)) {
-                    float delta = timeStep;
-                    window.DispatchEvents();
-                    update(delta);
-                    lastUpdate = DateTime.Now;
-                }
-
-                if (DateTime.Now > lastRender.AddSeconds(frameRate)) {
-                    draw();
-                    lastRender = DateTime.Now;
-                }
+        public void handleWave() {
+            if (nextEnemySpawn < DateTime.Now && enemiesToSpawn > 0) {
+                spawnEnemy();
+                enemiesToSpawn--;
+                nextEnemySpawn = DateTime.Now.AddSeconds(1 / enemiesSpawnRate);
             }
+        }
+        
+        public void increaseWave() {
+            wave += 1;
+            enemiesToSpawn = (int)(10 + (Math.Pow(wave, 1.3)));
+            nextEnemySpawn = DateTime.Now;
         }
 
         public void spawnEnemy() {
@@ -161,6 +148,25 @@ namespace ww1defence {
                 newEnemy.velocity = vel;
                 newEnemy.health = newEnemy.initialHealth;
                 newEnemy.isAlive = true;
+            }
+        }
+
+#endregion
+
+#region "Main"
+        public void run() {
+            while (window.IsOpen) {
+                if (DateTime.Now > lastUpdate.AddSeconds(timeStep)) {
+                    float delta = timeStep;
+                    window.DispatchEvents();
+                    update(delta);
+                    lastUpdate = DateTime.Now;
+                }
+
+                if (DateTime.Now > lastRender.AddSeconds(frameRate)) {
+                    draw();
+                    lastRender = DateTime.Now;
+                }
             }
         }
 
@@ -217,6 +223,8 @@ namespace ww1defence {
                 spawnEnemy();
             }
 
+            handleWave();
+
             foreach (shell s in shells) {
                 s.update(delta);
 
@@ -246,6 +254,10 @@ namespace ww1defence {
             foreach (enemy e in enemies) {
                 e.update(delta);
             }
+
+            if (enemies.Count == 0 && enemiesToSpawn == 0) {
+                increaseWave(); 
+            }
         }
 
         public void draw() {
@@ -271,15 +283,6 @@ namespace ww1defence {
                 s.draw(window);
             }
 
-            // Draw the flak time zone
-            // csInnerFlakZone.Radius = (40 + flakTime - 10) * 4f;
-            // csInnerFlakZone.Origin = new Vector2f(csInnerFlakZone.Radius, csInnerFlakZone.Radius);
-            // window.Draw(csInnerFlakZone);
-
-            // csOuterFlakZone.Radius = (40 + flakTime + 10) * 4f;
-            // csOuterFlakZone.Origin = new Vector2f(csOuterFlakZone.Radius, csOuterFlakZone.Radius);
-            // window.Draw(csOuterFlakZone);
-            
             csFlakZone.Radius = flakTime;
             csFlakZone.Origin = new Vector2f(csFlakZone.Radius, csFlakZone.Radius);
             window.Draw(csFlakZone);
