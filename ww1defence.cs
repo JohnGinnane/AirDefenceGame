@@ -17,7 +17,7 @@ namespace ww1defence {
         int wave = 0;
         int enemiesToSpawn = 0;
         DateTime nextEnemySpawn = DateTime.Now;
-        int enemiesSpawnRate = 2; // per second
+        float enemiesSpawnRate = 0.5f; // per second
 
         private Sprite sprCrosshair;
         private Texture textureSpritesheet;
@@ -118,11 +118,12 @@ namespace ww1defence {
             if (nextEnemySpawn < DateTime.Now && enemiesToSpawn > 0) {
                 spawnEnemy();
                 enemiesToSpawn--;
-                nextEnemySpawn = DateTime.Now.AddSeconds(1 / enemiesSpawnRate);
+                nextEnemySpawn = DateTime.Now.AddSeconds(1f / enemiesSpawnRate);
             }
         }
         
         public void increaseWave() {
+            Console.WriteLine("Increasing Wave");
             wave += 1;
             enemiesToSpawn = (int)(10 + (Math.Pow(wave, 1.3)));
             nextEnemySpawn = DateTime.Now;
@@ -255,7 +256,7 @@ namespace ww1defence {
                 e.update(delta);
             }
 
-            if (enemies.Count == 0 && enemiesToSpawn == 0) {
+            if (enemies.FindAll((x) => x.isAlive).Count == 0 && enemiesToSpawn == 0) {
                 increaseWave(); 
             }
         }
