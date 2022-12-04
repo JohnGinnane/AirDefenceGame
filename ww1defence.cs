@@ -18,6 +18,7 @@ namespace ww1defence {
         int enemiesToSpawn = 0;
         DateTime nextEnemySpawn = DateTime.Now;
         float enemiesSpawnRate = 0.5f; // per second
+        Text textWave;
 
         private Sprite sprCrosshair;
         private Texture textureSpritesheet;
@@ -35,7 +36,6 @@ namespace ww1defence {
 
         private float flakTime = minFlakTime;
 
-        private DateTime lastFire;
         private List<shell> shells;
 
         private List<enemy> enemies;
@@ -74,7 +74,13 @@ namespace ww1defence {
             csFlakZone.OutlineColor = new Color(240, 50, 40, 80);
             csFlakZone.FillColor = Color.Transparent;
 
-            lastFire = DateTime.Now;
+            textWave = new Text("", Global.Fonts.Arial);
+            textWave.CharacterSize = 30;
+            textWave.Position = new Vector2f(Globals.ScreenSize.X / 2f, Globals.ScreenSize.Y / 2f);
+
+            flak.lastFire = DateTime.Now;
+            bullet.lastFire = DateTime.Now;
+
             shells = new List<shell>();
 
             enemies = new List<enemy>();
@@ -127,6 +133,11 @@ namespace ww1defence {
             wave += 1;
             enemiesToSpawn = (int)(10 + (Math.Pow(wave, 1.3)));
             nextEnemySpawn = DateTime.Now;
+
+            textWave.DisplayedString = "Wave " + wave.ToString();
+            FloatRect textRect = textWave.GetLocalBounds();
+            textWave.Origin = new Vector2f(textRect.Left + textRect.Width / 2f,
+                                           textRect.Top + textRect.Height / 2f);
         }
 
         public void spawnEnemy() {
@@ -180,8 +191,8 @@ namespace ww1defence {
             }
 
             if (Input.Mouse["left"].isPressed) {
-                if ((DateTime.Now - lastFire).Milliseconds >= bullet.fireRate) {
-                    lastFire = DateTime.Now;
+                if ((DateTime.Now - bullet.lastFire).Milliseconds >= bullet.fireRate) {
+                    bullet.lastFire = DateTime.Now;
                     shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(bullet));
 
                     if (fireThis == null) {
@@ -197,8 +208,8 @@ namespace ww1defence {
             }
 
             if (Input.Mouse["right"].isPressed) {
-                if ((DateTime.Now - lastFire).Milliseconds >= flak.fireRate) {
-                    lastFire = DateTime.Now;
+                if ((DateTime.Now - flak.lastFire).Milliseconds >= flak.fireRate) {
+                    flak.lastFire = DateTime.Now;
                     shell? fireThis = shells.Find((x) =>(
                         x.isAlive == false &&
                         x.GetType() == typeof(flak)
@@ -264,6 +275,8 @@ namespace ww1defence {
         public void draw() {
             window.Clear(Colour.LightBlue);
             window.SetView(sceneView);
+
+            window.Draw(textWave);
 
             sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
             window.Draw(sprCrosshair);

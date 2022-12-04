@@ -36,6 +36,8 @@ namespace ww1defence {
         private RectangleShape rsFlak;
         private CircleShape csExplosion;
         
+        public static DateTime lastFire;
+        
         public DateTime explodeTime;
         public float explosionLife;
 
@@ -122,6 +124,8 @@ namespace ww1defence {
 
         public static float speed = 600f;
         public static float fireRate = 1000f / 10f;
+        
+        public static DateTime lastFire;
 
         new public float damage = 2f;
 
