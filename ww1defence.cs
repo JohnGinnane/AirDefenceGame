@@ -1,4 +1,5 @@
 using Global;
+using SFML.Audio;
 using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
@@ -39,6 +40,7 @@ namespace ww1defence {
         private List<shell> shells;
 
         private List<enemy> enemies;
+        
 #endregion
 
         public ww1defence() {
@@ -82,8 +84,14 @@ namespace ww1defence {
             bullet.lastFire = DateTime.Now;
 
             shells = new List<shell>();
-
             enemies = new List<enemy>();
+            
+            // Load sound buffers
+            Globals.Buffers.Add("sound/machine_gun1.wav", new SoundBuffer("sound/machine_gun1.wav"));
+            Globals.Buffers.Add("sound/machine_gun2.wav", new SoundBuffer("sound/machine_gun2.wav"));
+            Globals.Buffers.Add("sound/machine_gun3.wav", new SoundBuffer("sound/machine_gun3.wav"));
+            Globals.Buffers.Add(flak.FireSFX, new SoundBuffer(flak.FireSFX));
+            Globals.Buffers.Add(flak.ExplodeSFX, new SoundBuffer(flak.ExplodeSFX));
 
             lastUpdate = DateTime.Now;
             lastRender = DateTime.Now;
@@ -162,7 +170,6 @@ namespace ww1defence {
                 newEnemy.isAlive = true;
             }
         }
-
 #endregion
 
 #region "Main"
@@ -203,7 +210,8 @@ namespace ww1defence {
                     double radians = (-90 + sprTurretGun.Rotation + util.randfloat(-2, 2)) * Math.PI / 180;
                     Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
 
-                    fireThis.fire(sprTurretGun.Position, newVel * bullet.speed);
+                    bullet bulletThis = (bullet)fireThis;
+                    bulletThis.fire(sprTurretGun.Position, newVel * bullet.speed);
                 }
             }
 

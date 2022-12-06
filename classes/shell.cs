@@ -1,5 +1,6 @@
 using SFML.Graphics;
 using SFML.System;
+using SFML.Audio;
 using Global;
 
 namespace ww1defence {
@@ -20,6 +21,7 @@ namespace ww1defence {
             this.position = position;
             this.velocity = velocity;
         }
+
         public abstract void update(float delta);
         public abstract void draw(RenderWindow window);
 
@@ -35,7 +37,19 @@ namespace ww1defence {
 
         private RectangleShape rsFlak;
         private CircleShape csExplosion;
-        
+
+        public static string FireSFX {
+            get {
+                return "sound/flak_fire.wav";
+            }
+        }
+
+        public static string ExplodeSFX {
+            get {
+                return "sound/flak_explosion.wav";
+            }
+        }
+
         public static DateTime lastFire;
         
         public DateTime explodeTime;
@@ -109,12 +123,14 @@ namespace ww1defence {
             base.fire(position, velocity);
             this.explodeTime = explodeTime;
             this.explosionLife = 0;
+            Globals.playSound(flak.FireSFX, pitch: util.randfloat(0.95f, 1.05f));
         }
 
         public void explode() {
             explosionLife = explosionLifeDefault;
             csExplosion.Position = position;
             velocity = new Vector2f();
+            Globals.playSound(ExplodeSFX, pitch: util.randfloat(0.95f, 1.05f));
         }        
     }
 
@@ -128,6 +144,12 @@ namespace ww1defence {
         public static DateTime lastFire;
 
         new public float damage = 2f;
+
+        public static string FireSFX {
+            get {
+                return "sound/machine_gun" + util.randint(1, 3).ToString() + ".wav";
+            }
+        }
 
         public bullet() {
             rsBullet = new RectangleShape(new Vector2f(4, 2));
@@ -164,6 +186,11 @@ namespace ww1defence {
                 rsBullet.Rotation = (float)(Math.Atan2((double)velocity.Y, (double)velocity.X) * 180 / Math.PI);
                 window.Draw(rsBullet);
             }
+        }
+
+        public new void fire(Vector2f position, Vector2f velocity) {
+            base.fire(position, velocity);
+            Globals.playSound(bullet.FireSFX, vol: 40f, pitch: util.randfloat(0.95f, 1.05f));
         }
     }
 }
