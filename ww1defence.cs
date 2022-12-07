@@ -22,7 +22,9 @@ namespace ww1defence {
         Text textWave;
 
         private Sprite sprCrosshair;
+        private Sprite sprFlakCrosshair;
         private Texture textureSpritesheet;
+        private float flakTurnSpeed = 50f;
 
         private Sprite sprTurretBase;
         private Sprite sprTurretGun;
@@ -35,7 +37,7 @@ namespace ww1defence {
         private static float maxFlakTime = 500f;
         private static float flakScrollSpeed = 10f;
 
-        private float flakTime = minFlakTime;
+        private float flakTime = minFlakTime + (maxFlakTime - minFlakTime) / 2;
 
         private List<shell> shells;
 
@@ -55,10 +57,14 @@ namespace ww1defence {
 
             sceneView = new View(new FloatRect(0, 0, (float)Globals.ScreenSize.X, (float)Globals.ScreenSize.Y));
 
-            sprCrosshair = new Sprite(new Texture("images/crosshair.png"));
+            textureSpritesheet = new Texture("images/spritesheet.png");
+
+            sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
             sprCrosshair.Origin = new Vector2f(16, 16);
 
-            textureSpritesheet = new Texture("images/spritesheet.png");
+            sprFlakCrosshair = new Sprite(textureSpritesheet, new IntRect(32, 64, 32, 32));
+            sprFlakCrosshair.Origin = new Vector2f(16, 16);
+
             sprTurretBase = new Sprite(textureSpritesheet, new IntRect(0, 0, 64, 64));
             sprTurretBase.Origin = new Vector2f(32, 64);
             sprTurretBase.Position = new Vector2f(Globals.ScreenSize.X / 2, Globals.ScreenSize.Y);
@@ -92,6 +98,12 @@ namespace ww1defence {
             Globals.Buffers.Add("sound/machine_gun3.wav", new SoundBuffer("sound/machine_gun3.wav"));
             Globals.Buffers.Add(flak.FireSFX, new SoundBuffer(flak.FireSFX));
             Globals.Buffers.Add(flak.ExplodeSFX, new SoundBuffer(flak.ExplodeSFX));
+
+            // Put test enemy in middle of screen
+            // smallBlimp publicEnemyNumberOne = new smallBlimp(copySprite(sprSmallBlimp), Globals.ScreenSize / 2, new Vector2f());
+            // publicEnemyNumberOne.initialHealth = 10000f;
+            // publicEnemyNumberOne.health = publicEnemyNumberOne.initialHealth;
+            // enemies.Add(publicEnemyNumberOne);
 
             lastUpdate = DateTime.Now;
             lastRender = DateTime.Now;
@@ -150,7 +162,7 @@ namespace ww1defence {
 
         public void spawnEnemy() {
             // check for spare objects not in use
-            enemy? newEnemy = enemies.Find((x) => x.isAlive == false );
+            enemy? newEnemy = enemies.Find((x) => x.lifeState == enemy.eLifeState.dead );
 
             int dir = util.randsign();
             Vector2f pos = new Vector2f((dir < 0 ? Globals.ScreenSize.X - 1 : 1),
@@ -158,17 +170,21 @@ namespace ww1defence {
             Vector2f vel = new Vector2f(dir * 30f * util.randfloat(0.9f, 1.1f), 0);
 
             if (newEnemy == null) {
+                Sprite newSprite = copySprite(sprSmallBlimp);
                 newEnemy = new smallBlimp(copySprite(sprSmallBlimp), pos, vel);
-                // offset the position by the width of the blimp to avoid "pop in"
-                newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
                 enemies.Add(newEnemy);
             } else {
+                newEnemy.sprite.Rotation = 0;
                 newEnemy.position = pos;
-                newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
                 newEnemy.velocity = vel;
                 newEnemy.health = newEnemy.initialHealth;
-                newEnemy.isAlive = true;
+                newEnemy.lifeState = enemy.eLifeState.alive;
             }
+            
+            // offset the position by the width of the blimp to avoid "pop in"
+            newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;                
+            newEnemy.sprite.Scale = new Vector2f(Math.Abs(newEnemy.sprite.Scale.X) * dir * -1,
+                                                    Math.Abs(newEnemy.sprite.Scale.Y));
         }
 #endregion
 
@@ -207,8 +223,7 @@ namespace ww1defence {
                         shells.Add(fireThis);
                     }
                     
-                    double radians = (-90 + sprTurretGun.Rotation + util.randfloat(-2, 2)) * Math.PI / 180;
-                    Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
+                    Vector2f newVel = util.normalise(sprCrosshair.Position - sprTurretGun.Position);
 
                     bullet bulletThis = (bullet)fireThis;
                     bulletThis.fire(sprTurretGun.Position, newVel * bullet.speed);
@@ -239,6 +254,16 @@ namespace ww1defence {
                 }
             }
 
+            // Handle flak cross hair
+            Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
+            float targetAngle = 90f + (float)(Math.Atan2((double)curRelPos.Y, (double)curRelPos.X) * 180 / Math.PI);
+            float moveAngle = Math.Clamp((targetAngle - sprTurretGun.Rotation),
+                                         -flakTurnSpeed * delta,
+                                         flakTurnSpeed * delta);
+            sprTurretGun.Rotation = sprTurretGun.Rotation + moveAngle;
+
+            sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, sprCrosshair.Position)));
+
             if (Input.Keyboard["R"].justReleased) {
                 spawnEnemy();
             }
@@ -250,9 +275,12 @@ namespace ww1defence {
 
                 if (!s.isAlive) { continue; }
 
-                foreach (enemy e in enemies.FindAll((x) => x.isAlive)) {                    
+                foreach (enemy e in enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive)) {
+                    // At a later stage we should do a much faster AABB test before
+                    // doing a more complicated "inside polygon" check
+
                     if (s.GetType() == typeof(bullet)) {
-                        if (intersection.pointInsideRectangle(s.position, e.sprite.GetGlobalBounds())) {
+                        if (intersection.pointInsidePolygon(s.position, e.Hitbox)) {
                             s.applyDamage(delta, e);
                             break;
                         }
@@ -262,7 +290,9 @@ namespace ww1defence {
                         flak f = (flak)s;
 
                         if (f.explosionLife > 0) {
-                            if (intersection.circleInsideRectangle(s.position, flak.explosionSizeDefault, e.sprite.GetGlobalBounds())) {
+                            if (intersection.circleInsidePolygon(s.position,
+                                                                 flak.explosionSizeDefault,
+                                                                 e.Hitbox)) {
                                 s.applyDamage(delta, e);
                                 break;
                             }
@@ -275,7 +305,7 @@ namespace ww1defence {
                 e.update(delta);
             }
 
-            if (enemies.FindAll((x) => x.isAlive).Count == 0 && enemiesToSpawn == 0) {
+            if (enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive).Count == 0 && enemiesToSpawn == 0) {
                 increaseWave(); 
             }
         }
@@ -286,13 +316,10 @@ namespace ww1defence {
 
             window.Draw(textWave);
 
-            sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
-            window.Draw(sprCrosshair);
-
             // rotate the gun to point at crosshair
-            Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
-            double idk = Math.Atan2((double)curRelPos.Y, (double)curRelPos.X);
-            sprTurretGun.Rotation = 90 + (float)(idk * 180 / Math.PI);
+            // Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
+            // double idk = Math.Atan2((double)curRelPos.Y, (double)curRelPos.X);
+            // sprTurretGun.Rotation = 90 + (float)(idk * 180 / Math.PI);
 
             window.Draw(sprTurretGun);
             window.Draw(sprTurretBase);
@@ -308,6 +335,11 @@ namespace ww1defence {
             csFlakZone.Radius = flakTime;
             csFlakZone.Origin = new Vector2f(csFlakZone.Radius, csFlakZone.Radius);
             window.Draw(csFlakZone);
+
+            // Always display crosshair on top of background
+            window.Draw(sprFlakCrosshair);
+            sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
+            window.Draw(sprCrosshair);
 
             window.Display();
         }

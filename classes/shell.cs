@@ -99,7 +99,7 @@ namespace ww1defence {
 
         public override void applyDamage(float delta, enemy e)
         {
-            if (e.isAlive && isAlive && explosionLife > 0) {
+            if (e.lifeState == enemy.eLifeState.alive && isAlive && explosionLife > 0) {
                 if (isAlive) {
                     e.health -= damage * delta;
                 }
@@ -173,7 +173,7 @@ namespace ww1defence {
 
         public override void applyDamage(float delta, enemy e)
         {
-            if (isAlive && e.isAlive) {
+            if (isAlive && e.lifeState == enemy.eLifeState.alive) {
                 e.health -= damage;
                 this.isAlive = false;
             }

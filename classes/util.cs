@@ -110,6 +110,9 @@ namespace Global {
             return new Vector2f((float)Math.Cos(angle), (float)Math.Sin(angle));
         }
 
+        /// <summary>
+        /// Rotates the vector around the angle (radians)
+        /// </summary>
         public static Vector2f rotate(Vector2f vector, double angle) {
             if (angle == 0) { return vector; }
             if (angle == (float)Math.PI /  2f) { return new Vector2f(-vector.Y,  vector.X); }
@@ -121,6 +124,14 @@ namespace Global {
 
             return new Vector2f(vector.X * c - vector.Y * s,
                                 vector.X * s + vector.Y * c);
+        }
+
+        public static double rad2deg(double angle) {
+            return angle * 180 / Math.PI;
+        }
+
+        public static double deg2rad(double angle) {
+            return angle * (Math.PI / 180f);
         }
 
         public static VertexArray VectorsToVertexArray(List<Vector2f> vectors, Color outlineColour, Color fillColour) {
@@ -142,8 +153,31 @@ namespace Global {
             return VectorsToVertexArray(vectors, Color.White);
         }
 
+        public static List<Vector2f> VertexArrayToVectors(VertexArray va) {
+            List<Vector2f> output = new List<Vector2f>();
+            
+            for (uint k = 0; k < va.VertexCount; k++) {
+                Vertex v = va[k];
+                output.Add(v.Position);
+            }
+
+            return output;
+        }
+
         public static FloatRect RectShapeToFloatRect(RectangleShape rs) {
             return new FloatRect(rs.Position, rs.Size);
+        }
+
+        public static List<Vector2f> FloatRectToVectors(FloatRect fr, bool wrapAroundToFirstPoint = false) {
+            List<Vector2f> output = new List<Vector2f>();
+
+            // Clockwise starting at top left corner
+            output.Add(new Vector2f(fr.Left, fr.Top));
+            output.Add(new Vector2f(fr.Left + fr.Width, fr.Top));
+            output.Add(new Vector2f(fr.Left + fr.Width, fr.Top + fr.Height));
+            output.Add(new Vector2f(fr.Left, fr.Top + fr.Height));
+            
+            return output;
         }
 
         public static Vector2f Position(FloatRect fr) {
@@ -207,8 +241,19 @@ namespace Global {
             return randvec2(0, Globals.ScreenSize.X, 0, Globals.ScreenSize.Y);
         }
 
+        public static Vector2f toWorld(this Sprite spr, Vector2f localPos) {
+            Vector2f output = new Vector2f();
+
+            // rotate the localPos around spr.Rotation
+            Vector2f rotatedLocalPos = rotate(localPos, deg2rad(spr.Rotation));
+            output = spr.Position + rotatedLocalPos;
+
+            return output;
+        }
+
         public static void Use<T>(this T item, Action<T> work) {
             work(item);
         }
     } // end class
 } // end namespace
+
