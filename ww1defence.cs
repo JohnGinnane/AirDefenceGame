@@ -42,7 +42,18 @@ namespace ww1defence {
         private List<shell> shells;
 
         private List<enemy> enemies;
+        private List<explosion> explosions;
+
+        public List<enemy> ActiveEnemies {
+            get { return enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive); }
+        }
+
+        public List<explosion> ActiveExplosions {
+            get { return explosions.FindAll((x) => x.isActive = true); }
+        }
         
+        private DateTime flakLastFire;
+        private DateTime mgLastFire;
         private float playerHealth = 100f;
         private RectangleShape rsHealthBackground;
         private RectangleShape rsHealthCurrent;
@@ -98,18 +109,19 @@ namespace ww1defence {
             textWave.CharacterSize = 30;
             textWave.Position = new Vector2f(Globals.ScreenSize.X / 2f, Globals.ScreenSize.Y / 2f);
 
-            flak.lastFire = DateTime.Now;
-            bullet.lastFire = DateTime.Now;
+            flakLastFire = DateTime.Now;
+            mgLastFire = DateTime.Now;
 
             shells = new List<shell>();
             enemies = new List<enemy>();
+            explosions = new List<explosion>();
             
             // Load sound buffers
             Globals.Buffers.Add("sound/machine_gun1.wav", new SoundBuffer("sound/machine_gun1.wav"));
             Globals.Buffers.Add("sound/machine_gun2.wav", new SoundBuffer("sound/machine_gun2.wav"));
             Globals.Buffers.Add("sound/machine_gun3.wav", new SoundBuffer("sound/machine_gun3.wav"));
+            Globals.Buffers.Add(explosion.ExplodeSFX, new SoundBuffer(explosion.ExplodeSFX));
             Globals.Buffers.Add(flak.FireSFX, new SoundBuffer(flak.FireSFX));
-            Globals.Buffers.Add(flak.ExplodeSFX, new SoundBuffer(flak.ExplodeSFX));
 
             // Put test enemy in middle of screen
             // smallBlimp publicEnemyNumberOne = new smallBlimp(copySprite(sprSmallBlimp), Globals.ScreenSize / 2, new Vector2f());
@@ -229,28 +241,29 @@ namespace ww1defence {
             }
 
             if (Input.Mouse["left"].isPressed) {
-                if ((DateTime.Now - bullet.lastFire).Milliseconds >= bullet.fireRate) {
-                    bullet.lastFire = DateTime.Now;
-                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(bullet));
+                if ((DateTime.Now - mgLastFire).Milliseconds >= bullet.fireRate) {
+                    mgLastFire = DateTime.Now;
+                    bullet? fireThis = (bullet?)shells.Find((x) => (
+                        !x.isActive && x.GetType() == typeof(bullet)
+                    ));
 
                     if (fireThis == null) {
                         fireThis = new bullet();
                         shells.Add(fireThis);
                     }
                     
-                    Vector2f newVel = util.normalise(sprCrosshair.Position - sprTurretGun.Position);
+                    Vector2f newVel = util.normalise(sprCrosshair.Position - sprTurretGun.Position) * bullet.speed;
+                    Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
 
-                    bullet bulletThis = (bullet)fireThis;
-                    bulletThis.fire(sprTurretGun.Position, newVel * bullet.speed);
+                    fireThis.fire(newPos, newVel);
                 }
             }
 
             if (Input.Mouse["right"].isPressed) {
-                if ((DateTime.Now - flak.lastFire).Milliseconds >= flak.fireRate) {
-                    flak.lastFire = DateTime.Now;
-                    shell? fireThis = shells.Find((x) =>(
-                        x.isAlive == false &&
-                        x.GetType() == typeof(flak)
+                if ((DateTime.Now - flakLastFire).Milliseconds >= flak.fireRate) {
+                    flakLastFire = DateTime.Now;
+                    flak? fireThis = (flak?)shells.Find((x) => (
+                        !x.isActive && x.GetType() == typeof(flak)
                     ));
                     
                     float timer = (flakTime * 1.1f - flakZoneThickness / 2f
@@ -262,10 +275,10 @@ namespace ww1defence {
                     }
                     
                     double radians = (-90 + sprTurretGun.Rotation + util.randfloat(-2, 2)) * Math.PI / 180;
-                    Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians));
+                    Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians)) * flak.speed;
+                    Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
                     
-                    flak flakThis = (flak)fireThis;
-                    flakThis.fire(sprTurretGun.Position, newVel * flak.speed, DateTime.Now.AddMilliseconds(timer));
+                    fireThis.fire(newPos, newVel, DateTime.Now.AddMilliseconds(timer));
                 }
             }
 
@@ -286,28 +299,30 @@ namespace ww1defence {
             handleWave();
 
             // Check if any BULLETS have intersected with BOMBS
-            foreach (bullet b in shells.FindAll((x) => x.GetType() == typeof(bullet) && x.isAlive)) {
-                foreach (smallBomb sb in shells.FindAll((x) => x.GetType() == typeof(smallBomb) && x.isAlive)) {
-                    if (sb.explosionLife == 0) {
-                        if (intersection.circleInsideCircle(b.BoundingCircle, sb.BoundingCircle)) {
-                            b.isAlive = false;
-                            sb.explode();
-                        }
+            foreach (bullet b in shells.FindAll((x) => x.GetType() == typeof(bullet) && x.isActive)) {
+                foreach (smallBomb sb in shells.FindAll((x) => x.GetType() == typeof(smallBomb) && x.isActive)) {
+                    if (intersection.circleInsideCircle(b.BoundingCircle, sb.BoundingCircle)) {
+                        b.kill();
+                        explosion e = new explosion(sb.Position, 50f, 2f, 25f);
+                        explosions.Add(e);
                     }
                 }
             }
 
+            // Check if explosions intersect with enemies
+            foreach (explosion ex in explosions.FindAll((x) => x.isActive)) {
+                foreach (enemy e in enemies.FindAll()) 
+            }
+
             foreach (shell s in shells) {
                 s.update(delta);
-
-                if (!s.isAlive) { continue; }
+                if (!s.isActive) { continue; }
 
                 foreach (enemy e in enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive)) {
                     // At a later stage we should do a much faster AABB test before
                     // doing a more complicated "inside polygon" check
-
                     if (s.GetType() == typeof(bullet)) {
-                        if (intersection.pointInsidePolygon(s.position, e.Hitbox)) {
+                        if (intersection.pointInsidePolygon(s.Position, e.Hitbox)) {
                             s.applyDamage(delta, e);
                             break;
                         }

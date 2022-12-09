@@ -251,6 +251,23 @@ namespace Global {
             return output;
         }
 
+        public static void setAlpha(this Color C, byte A) {
+            C.A = A;
+        }
+
+        public static void setRed(this Color C, byte R) {
+            C.R = R;
+        }
+
+        public static void setGreen(this Color C, byte G) {
+            C.G = G; // coconut gun
+        }
+
+        public static void setBlue(this Color C, byte B) {
+            C.B = B;
+        }
+
+
         public static void Use<T>(this T item, Action<T> work) {
             work(item);
         }

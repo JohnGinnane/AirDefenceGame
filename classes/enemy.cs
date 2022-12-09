@@ -3,7 +3,7 @@ using SFML.Graphics;
 using SFML.System;
 
 namespace ww1defence {
-    public abstract class enemy {
+    public abstract class enemy : entity {
         public enum eLifeState {
             alive,
             dying,
@@ -14,34 +14,18 @@ namespace ww1defence {
         public eLifeState lifeState;
         public float lifeStateTime;
 
-        public Vector2f position;
-        public Vector2f velocity;
-        public Sprite sprite;
         public RectangleShape rsHealthCurrent;
         public RectangleShape rsHealthBackground;
 
         public float initialHealth = 100f;
         public float health;
 
-        internal List<Vector2f> hitbox;
-        public List<Vector2f> Hitbox {
-            get {
-                List<Vector2f> output = new List<Vector2f>();
-
-                foreach (Vector2f v in hitbox) {
-                    output.Add(v + position);
-                }
-
-                return output;
-            }
-        }
-
         public DateTime lastFire;
 
-        public enemy(Sprite sprite, Vector2f position, Vector2f velocity) {
+        public enemy(Sprite sprite, Vector2f position, Vector2f velocity) : base() {
             this.sprite = sprite;
-            this.position = position;
-            this.velocity = velocity;
+            Position = position;
+            Velocity = velocity;
             lifeState = eLifeState.alive;
             health = initialHealth;
 
