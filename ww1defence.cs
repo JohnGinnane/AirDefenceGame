@@ -21,18 +21,18 @@ namespace ww1defence {
         float enemiesSpawnRate = 0.5f; // per second
         Text textWave;
 
+        private Texture textureSpritesheet;
         private Sprite sprCrosshair;
         private Sprite sprFlakCrosshair;
-        private Texture textureSpritesheet;
-        private float flakTurnSpeed = 50f;
-
         private Sprite sprTurretBase;
         private Sprite sprTurretGun;
         private Sprite sprSmallBlimp;
+        private Sprite sprSmallBomb;
 
         private CircleShape csFlakZone;
         private static float flakZoneThickness = 40f;
 
+        private float flakTurnSpeed = 50f;
         private static float minFlakTime = 50f;
         private static float maxFlakTime = 500f;
         private static float flakScrollSpeed = 10f;
@@ -43,6 +43,9 @@ namespace ww1defence {
 
         private List<enemy> enemies;
         
+        private float playerHealth = 100f;
+        private RectangleShape rsHealthBackground;
+        private RectangleShape rsHealthCurrent;
 #endregion
 
         public ww1defence() {
@@ -76,11 +79,20 @@ namespace ww1defence {
             sprSmallBlimp = new Sprite(textureSpritesheet, new IntRect(128, 0, 128, 32*3));
             sprSmallBlimp.Origin = new Vector2f(128/2, (32*3)/2);
 
+            sprSmallBomb = new Sprite(textureSpritesheet, new IntRect(320, 0, 32, 64));
+            sprSmallBomb.Origin = new Vector2f(32 / 2, 64 / 2);
+
             csFlakZone = new CircleShape(0, 100);
             csFlakZone.Position = sprTurretBase.Position;
             csFlakZone.OutlineThickness = flakZoneThickness;
             csFlakZone.OutlineColor = new Color(240, 50, 40, 80);
             csFlakZone.FillColor = Color.Transparent;
+
+            rsHealthBackground = new RectangleShape(new Vector2f(104, 14));
+            rsHealthBackground.FillColor = Colour.Grey;
+
+            rsHealthCurrent = new RectangleShape(new Vector2f(100, 10));
+            rsHealthCurrent.FillColor = new Color(75, 230, 35);
 
             textWave = new Text("", Global.Fonts.Arial);
             textWave.CharacterSize = 30;
@@ -162,7 +174,7 @@ namespace ww1defence {
 
         public void spawnEnemy() {
             // check for spare objects not in use
-            enemy? newEnemy = enemies.Find((x) => x.lifeState == enemy.eLifeState.dead );
+            enemy? newEnemy = enemies.Find((x) => x.lifeState == enemy.eLifeState.dead);
 
             int dir = util.randsign();
             Vector2f pos = new Vector2f((dir < 0 ? Globals.ScreenSize.X - 1 : 1),
@@ -185,6 +197,9 @@ namespace ww1defence {
             newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;                
             newEnemy.sprite.Scale = new Vector2f(Math.Abs(newEnemy.sprite.Scale.X) * dir * -1,
                                                     Math.Abs(newEnemy.sprite.Scale.Y));
+
+            // set last fire to be in the future to delay the first bomb being dropped
+            newEnemy.lastFire = DateTime.Now.AddSeconds(util.randfloat(4, 8));
         }
 #endregion
 
@@ -270,6 +285,18 @@ namespace ww1defence {
 
             handleWave();
 
+            // Check if any BULLETS have intersected with BOMBS
+            foreach (bullet b in shells.FindAll((x) => x.GetType() == typeof(bullet) && x.isAlive)) {
+                foreach (smallBomb sb in shells.FindAll((x) => x.GetType() == typeof(smallBomb) && x.isAlive)) {
+                    if (sb.explosionLife == 0) {
+                        if (intersection.circleInsideCircle(b.BoundingCircle, sb.BoundingCircle)) {
+                            b.isAlive = false;
+                            sb.explode();
+                        }
+                    }
+                }
+            }
+
             foreach (shell s in shells) {
                 s.update(delta);
 
@@ -298,11 +325,42 @@ namespace ww1defence {
                             }
                         }
                     }
+
+                    if (s.GetType() == typeof(smallBomb)) {
+                        smallBomb sb = (smallBomb)s;
+
+                        if (sb.explosionLife > 0 && sb.eOwner == shell.enumOwner.enemy) {
+                            if (intersection.circleInsideRectangle(sb.position,
+                                                                    smallBomb.explosionSizeDefault,
+                                                                    sprTurretBase.GetGlobalBounds())) {
+                                playerHealth -= sb.damage * delta;
+                                break;
+                            }
+                        }
+                    }
                 }
             }
 
             foreach (enemy e in enemies) {
                 e.update(delta);
+
+                if (e.lifeState == enemy.eLifeState.alive && (DateTime.Now - e.lastFire).TotalMilliseconds >= smallBomb.fireRate) {
+                    e.lastFire = DateTime.Now;
+
+                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(smallBomb));
+
+                    if (fireThis == null) {
+                        fireThis = new smallBomb(copySprite(sprSmallBomb), shell.enumOwner.enemy);
+                        shells.Add(fireThis);
+                    } else {
+                        ((smallBomb)fireThis).sprBomb.Rotation = 0;
+                    }
+                     
+                    Vector2f newPos = e.position + new Vector2f(0, e.sprite.TextureRect.Height / 2f - 10f);
+                    Vector2f newVel = e.velocity;
+                    smallBomb smallBombThis = (smallBomb)fireThis;
+                    smallBombThis.fire(newPos, newVel);
+                }
             }
 
             if (enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive).Count == 0 && enemiesToSpawn == 0) {
@@ -320,10 +378,7 @@ namespace ww1defence {
             // Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
             // double idk = Math.Atan2((double)curRelPos.Y, (double)curRelPos.X);
             // sprTurretGun.Rotation = 90 + (float)(idk * 180 / Math.PI);
-
-            window.Draw(sprTurretGun);
-            window.Draw(sprTurretBase);
-
+            
             foreach (enemy e in enemies) {
                 e.draw(window);
             }
@@ -332,6 +387,20 @@ namespace ww1defence {
                 s.draw(window);
             }
 
+            window.Draw(sprTurretGun);
+            window.Draw(sprTurretBase);
+
+            rsHealthBackground.Position = sprTurretBase.Position + new Vector2f(-sprTurretBase.Origin.X,
+                                                                                sprTurretBase.TextureRect.Height);
+            window.Draw(rsHealthBackground);
+            
+            if (playerHealth > 0) {
+                rsHealthCurrent.Position = sprTurretBase.Position + new Vector2f(-sprTurretBase.Origin.X + 2,
+                                                                                 -sprTurretBase.TextureRect.Height + 12);
+                rsHealthCurrent.Size = new Vector2f(playerHealth, 10);
+                window.Draw(rsHealthCurrent);
+            }
+            
             csFlakZone.Radius = flakTime;
             csFlakZone.Origin = new Vector2f(csFlakZone.Radius, csFlakZone.Radius);
             window.Draw(csFlakZone);

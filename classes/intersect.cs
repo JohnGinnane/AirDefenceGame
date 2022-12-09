@@ -28,7 +28,13 @@ namespace Global {
             float distSq = distX * distX + distY * distY;
             float radSq = (aRadius + bRadius) * (aRadius + bRadius);
 
+            // we dont need to square root these because we're not
+            // interested in the distance, just if they are overlapping
             return distSq < radSq;
+        }
+
+        public static bool circleInsideCircle(CircleShape csA, CircleShape csB) {
+            return circleInsideCircle(csA.Position, csA.Radius, csB.Position, csB.Radius);
         }
 
         public static bool pointInsideRectangle(Vector2f p, FloatRect r) {

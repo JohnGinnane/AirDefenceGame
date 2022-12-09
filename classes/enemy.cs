@@ -36,7 +36,7 @@ namespace ww1defence {
             }
         }
 
-        public static bool drawHitbox = false;
+        public DateTime lastFire;
 
         public enemy(Sprite sprite, Vector2f position, Vector2f velocity) {
             this.sprite = sprite;
@@ -70,7 +70,7 @@ namespace ww1defence {
             hitbox.Add(new Vector2f(spriteSize.Width / -6f, spriteSize.Height /  2.5f));
             //hitbox.Add(new Vector2f(spriteSize.Width / -2f, 0f));
         }
-
+        
         public override void update(float delta)
         {
             if (health <= 0 && lifeState == eLifeState.alive) {
@@ -84,7 +84,7 @@ namespace ww1defence {
                     // remove horizonal velocity
                     // remove 5% per second
                     velocity.X = velocity.X - (velocity.X * 0.1f * delta);
-                    velocity.Y = velocity.Y + 10f * delta;
+                    velocity.Y = velocity.Y + Globals.grabity * delta;
 
                     // make the sprite tilt up or down
                     sprite.Rotation += velocity.X / 10 * delta;
@@ -103,7 +103,7 @@ namespace ww1defence {
                 sprite.Position = position;
                 window.Draw(sprite);
 
-                if (drawHitbox) {
+                if (Globals.DrawHitbox) {
                     VertexArray vaHitbox = util.VectorsToVertexArray(Hitbox,
                                                                      Colour.DarkGreen,
                                                                      Color.Transparent);
