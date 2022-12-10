@@ -1,0 +1,54 @@
+WW ONE AIR DEFENCE:
+
+destroying blimp sometimes spawn a guy in a parachute (cannot kill them)
+
+have 1910s music play during quiet times, then reduce vol to 0 and introduce air raid siren for new wave
+stereo sound effects (might need to write lib for this)
+blimps need engine sound effect
+
+later in game you can get controllable biplane that has limited fuel and ammo
+preferable to land it to reuse, otherwise its gone for duration of wave
+need to implement village with a church steeple prominent
+if too many buildings are destroyed then no more music
+if all buildings are destroyed then you lose
+
+start off with machine gun
+purchase flak (+ upgrades)
+purchase rocket (+ upgrades)
+
+have each emplacement be in a different place
+
+maybe flak and rockets must slowly move towards crosshair, whereas machine gun can fire immediately where crosshair is aimed DONE
+
+ MACHINE GUN:
+1. low RPM machine gun
+2. high RPM / heavy machine gun
+3. water jacket to improve cooling
+4. incendiary ammo (used in 1916)
+
+FLAK:
+1. fixed time flak
+2. variable time flak (large circle whose radius you can increase/decrease)
+3. altimeter flak (horizontal bar you can move up/down)
+3. magnetic/proximity flak (not invented until ww2 so maybe dont do)
+
+SPOT LIGHTS FOR NIGHT TIME MISSIONS
+rocket (1916 - le prieur rocket)
+tow rocket (ww2)
+lightning rocket (sci-fi)
+
+DIFFICULTY:
+Changes to difficulty do not change damage or health
+Easy: 
+Infinite ammo / no reload / no overheating
+Enemies fly in slow straight lines
+
+Medium:
+Must reload weapons / do not constantly fire or over heat (over heat either stops usage or makes it fire more and more inaccurately (preference: latter))
+enemies move up and down perhaps?
+
+Hard:
+Enemies throw out metal fragments to throw off magnetic projectiles (counter measures)
+Move really fast to avoid fire
+Maybe have multiple gas compartments, destroying a compartment makes it lose altitude
+Destroy gondola to take out balloon completely?

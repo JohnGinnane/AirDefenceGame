@@ -33,8 +33,8 @@ namespace Global {
             return distSq < radSq;
         }
 
-        public static bool circleInsideCircle(CircleShape csA, CircleShape csB) {
-            return circleInsideCircle(csA.Position, csA.Radius, csB.Position, csB.Radius);
+        public static bool circleInsideCircle(CircleShape A, CircleShape B) {
+            return circleInsideCircle(A.Position, A.Radius, B.Position, B.Radius);
         }
 
         public static bool pointInsideRectangle(Vector2f p, FloatRect r) {

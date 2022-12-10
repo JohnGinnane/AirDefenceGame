@@ -30,36 +30,42 @@ namespace ww1defence {
             set { damage = value; }
         }
         
-        // returns the duration from a range of 0 to 1
-        internal float explosionAlpha {
+        // returns the duration from a range of 0 to 255
+        internal byte ExplosionAlpha {
             get {
-                if (initialDuration == 0) { return 0; }
-                if (Duration == 0) { return 0; }
+                if (initialDuration == 0)       { return 0; }
+                if (Duration == 0)              { return 0; }
                 if (Duration > initialDuration) { return 1; }
-                return Duration / initialDuration;
+                return (byte)(255f * Duration / initialDuration);
             }
         }
 
         internal CircleShape csExplosion;
 
         public explosion(Vector2f position, float radius, float duration, float damage) : base() {
+            csExplosion = new CircleShape();
+            start(position, radius, duration, damage);
+        }
+
+        public void start(Vector2f position, float radius, float duration, float damage, float pitch = 1f) {
+            if (isActive) { return; }
+            
             Position = position;
             initialDuration = duration;
             this.duration = duration;
             initialRadius = radius;
             this.radius = radius;
             Damage = damage;
-
             isActive = true;
 
-            csExplosion = new CircleShape();
             csExplosion.Radius = Radius;
             csExplosion.OutlineColor = Colour.Orange;
             csExplosion.OutlineThickness = initialRadius / 3f;
             csExplosion.FillColor = Color.Red;
             csExplosion.Origin = new Vector2f(csExplosion.Radius, csExplosion.Radius);
-            
-            Globals.playSound(ExplodeSFX, pitch: util.randfloat(0.45f, 0.55f));
+            Globals.playSound(ExplodeSFX, pitch: pitch);
+
+            Console.WriteLine($"Dur: {this.duration}");
         }
 
         public override void update(float delta)
@@ -67,9 +73,8 @@ namespace ww1defence {
             if (isActive) {
                 base.update(delta);
 
-                duration = duration - delta;
-                csExplosion.FillColor.setAlpha((byte)(255 * explosionAlpha));
-
+                duration -= delta;
+                
                 if (Duration <= 0) {
                     kill();
                 }
@@ -84,8 +89,18 @@ namespace ww1defence {
         public override void draw(RenderWindow window)
         {
             if (isActive) {
+                csExplosion.Position = Position;
+                csExplosion.FillColor = csExplosion.FillColor.setAlpha(ExplosionAlpha);
+                csExplosion.OutlineColor = csExplosion.OutlineColor.setAlpha(ExplosionAlpha);
+
                 window.Draw(csExplosion);
                 drawHitbox(window);
+            }
+        }
+        
+        public void applyDamage(float delta, entity e) {
+            if (isActive && e.isActive) {
+                e.health -= damage * delta;
             }
         }
     }
@@ -127,16 +142,24 @@ namespace ww1defence {
             Velocity = velocity;
         }
 
-        public abstract void applyDamage(float delta, enemy e);
+        public virtual void applyDamage(float delta, entity e) { }
 
-        public void draw() {
+        public override void draw(RenderWindow window) {
+            if (isActive) {
+                rsShell.Position = Position;
+                rsShell.Rotation = Rotation;
+                window.Draw(rsShell);
 
+                drawHitbox(window);
+            }
         }
     }
 
     public class smallBomb : shell
     {
-        public new float damage = 25f;        
+        public new float damage = 25f;
+        public static float explosionRadius = 25f;
+        public static float explosionDuration = 2f;
         public static float fireRate = 1000 * 5; // 1 every 5 seconds
         
         public smallBomb(Sprite sprite) : base() {
@@ -149,9 +172,8 @@ namespace ww1defence {
             base.fire(position, velocity);
         }
 
-        public override void applyDamage(float delta, enemy e)
-        {
-            
+        public static float explosionPitch() {
+            return util.randfloat(0.45f, 0.55f);
         }
     }
 
@@ -166,9 +188,10 @@ namespace ww1defence {
 
         public static float fireRate = 1000f / 4f; // 4 shots per second
         public static float speed = 300f;
-        public static float explosionLifeDefault = 1f; // 1 second long explosion
-        public static float explosionSizeDefault = 20f;
-        new public float damage = 50f;
+        
+        public static float explosionRadius = 15f;
+        public static float explosionDuration = 1f;
+        new public float damage = 35f;
         
         internal DateTime explodeTime;
 
@@ -180,29 +203,15 @@ namespace ww1defence {
             this.explodeTime = explodeTime;
         }
 
-        public override void update(float delta)
-        {
-            base.update(delta);
-
-            if (isActive) {
-                // do this outside the class
-                // if (DateTime.Now >= explodeTime) {
-                //     explode();
-                //     return;
-                // }                
-            }
-        }
-
-        public override void applyDamage(float delta, enemy e)
-        {
-            
-        }
-
         public void fire(Vector2f position, Vector2f velocity, DateTime explodeTime) {
             base.fire(position, velocity);
             this.explodeTime = explodeTime;
             Globals.playSound(FireSFX, pitch: util.randfloat(0.95f, 1.05f));
-        }  
+        }
+        
+        public static float explosionPitch() {
+            return util.randfloat(0.95f, 1.05f);
+        }
     }
 
     public class bullet : shell
@@ -224,10 +233,18 @@ namespace ww1defence {
             rsShell.FillColor = Color.Yellow;
         }
 
-        public override void applyDamage(float delta, enemy e)
+        public override void applyDamage(float delta, entity e)
         {
-            if (isActive && e.lifeState == enemy.eLifeState.alive) {
-                e.health -= damage;
+            if (isActive && e.isActive) {
+                if (e.GetType() == typeof(enemy)) {
+                    enemy en = (enemy)e;
+                    if (en.lifeState == enemy.eLifeState.alive) {
+                        en.health -= damage;
+                    }
+                } else {
+                    e.health -= damage;
+                }
+
                 kill();
             }
         }

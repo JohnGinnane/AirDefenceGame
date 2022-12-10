@@ -251,20 +251,24 @@ namespace Global {
             return output;
         }
 
-        public static void setAlpha(this Color C, byte A) {
+        public static Color setAlpha(this Color C, byte A) {
             C.A = A;
+            return C;
         }
 
-        public static void setRed(this Color C, byte R) {
+        public static Color setRed(this Color C, byte R) {
             C.R = R;
+            return C;
         }
 
-        public static void setGreen(this Color C, byte G) {
+        public static Color setGreen(this Color C, byte G) {
             C.G = G; // coconut gun
+            return C;
         }
 
-        public static void setBlue(this Color C, byte B) {
+        public static Color setBlue(this Color C, byte B) {
             C.B = B;
+            return C;
         }
 
 

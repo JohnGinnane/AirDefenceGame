@@ -6,8 +6,15 @@ namespace ww1defence {
     public abstract class entity {
         public Vector2f Position;
         public Vector2f Velocity;
-        public Double Rotation;
-        public Double SpriteOffsetRotation;
+        public float Rotation;
+        public float SpriteOffsetRotation;
+
+        public enum enumFaction {
+            friend,
+            enemy,
+            ally,
+            neutral
+        }
         
         internal Sprite? sprite;
         public Sprite? Sprite {
@@ -15,6 +22,12 @@ namespace ww1defence {
         }
 
         public bool isActive;
+
+        public float initialHealth = 100f;
+        public float health;
+
+        public RectangleShape rsHealthCurrent;
+        public RectangleShape rsHealthBackground;
 
         // Used for fast collision checks
         internal CircleShape csBoundingCircle;
@@ -48,14 +61,21 @@ namespace ww1defence {
             Position = new Vector2f();
             Velocity = new Vector2f();
 
-            // if we ever draw hitbox then draw this cirlc
+            // if we ever draw hitbox then draw this circle
             csBoundingCircle.FillColor = Color.Transparent;
             csBoundingCircle.OutlineColor = Color.Green;
             csBoundingCircle.OutlineThickness = 1f;
+            
+            rsHealthBackground = new RectangleShape(new Vector2f(104, 14));
+            rsHealthBackground.FillColor = Colour.Grey;
+
+            rsHealthCurrent = new RectangleShape(new Vector2f(100, 10));
+            rsHealthCurrent.FillColor = new Color(75, 230, 35);
         }
 
         public virtual void update(float delta) {
             Position = Position + (Velocity * delta);
+            Rotation = SpriteOffsetRotation + (float)(Math.Atan2((double)Velocity.Y, (double)Velocity.X) * 180 / Math.PI);
         }
 
         internal virtual void drawHitbox(RenderWindow window) {
@@ -74,7 +94,7 @@ namespace ww1defence {
             if (isActive) {
                 if (Sprite != null) { 
                     Sprite.Position = Position;
-                    Sprite.Rotation = (float)SpriteOffsetRotation + (float)(Math.Atan2((double)Velocity.Y, (double)Velocity.X) * 180 / Math.PI);
+                    Sprite.Rotation = Rotation;
                     window.Draw(Sprite);
                 }
 

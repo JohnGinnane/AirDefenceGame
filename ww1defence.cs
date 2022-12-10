@@ -44,12 +44,16 @@ namespace ww1defence {
         private List<enemy> enemies;
         private List<explosion> explosions;
 
+        public List<shell> ActiveShells {
+            get { return shells.FindAll((x) => x.isActive); }
+        }
+
         public List<enemy> ActiveEnemies {
-            get { return enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive); }
+            get { return enemies.FindAll((x) => x.isActive && x.lifeState == enemy.eLifeState.alive); }
         }
 
         public List<explosion> ActiveExplosions {
-            get { return explosions.FindAll((x) => x.isActive = true); }
+            get { return explosions.FindAll((x) => x.isActive); }
         }
         
         private DateTime flakLastFire;
@@ -194,24 +198,39 @@ namespace ww1defence {
             Vector2f vel = new Vector2f(dir * 30f * util.randfloat(0.9f, 1.1f), 0);
 
             if (newEnemy == null) {
-                Sprite newSprite = copySprite(sprSmallBlimp);
                 newEnemy = new smallBlimp(copySprite(sprSmallBlimp), pos, vel);
                 enemies.Add(newEnemy);
             } else {
-                newEnemy.sprite.Rotation = 0;
-                newEnemy.position = pos;
-                newEnemy.velocity = vel;
+                newEnemy.Rotation = 0;
+                newEnemy.Position = pos;
+                newEnemy.Velocity = vel;
                 newEnemy.health = newEnemy.initialHealth;
                 newEnemy.lifeState = enemy.eLifeState.alive;
             }
             
             // offset the position by the width of the blimp to avoid "pop in"
-            newEnemy.position.X = newEnemy.position.X + sprSmallBlimp.TextureRect.Width * dir * -1;                
-            newEnemy.sprite.Scale = new Vector2f(Math.Abs(newEnemy.sprite.Scale.X) * dir * -1,
-                                                    Math.Abs(newEnemy.sprite.Scale.Y));
+            //newEnemy.Position.X = newEnemy.Position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
+
+            if (newEnemy.Sprite != null) {
+                newEnemy.Sprite.Scale = new Vector2f(Math.Abs(newEnemy.Sprite.Scale.X) * dir * -1,
+                                                        Math.Abs(newEnemy.Sprite.Scale.Y));
+            }
 
             // set last fire to be in the future to delay the first bomb being dropped
             newEnemy.lastFire = DateTime.Now.AddSeconds(util.randfloat(4, 8));
+            newEnemy.isActive = true;
+        }
+
+        public void explode(Vector2f pos, float radius, float duration, float damage, float soundPitch = 1f) {
+            explosion? e = explosions.Find((x) => !x.isActive);
+
+            if (e == null) {
+                e = new explosion(pos, radius, duration, damage);
+            } else {
+                e.start(pos, radius, duration, damage, soundPitch);
+            }
+
+            explosions.Add(e);
         }
 #endregion
 
@@ -292,89 +311,105 @@ namespace ww1defence {
 
             sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, sprCrosshair.Position)));
 
-            if (Input.Keyboard["R"].justReleased) {
-                spawnEnemy();
-            }
-
             handleWave();
 
+            foreach (shell s in ActiveShells) {
+                s.update(delta);
+            }
+
+            foreach (enemy e in ActiveEnemies) {
+                e.update(delta);
+            }
+
+            foreach (explosion ex in ActiveExplosions) {
+                ex.update(delta);
+            }
+
             // Check if any BULLETS have intersected with BOMBS
-            foreach (bullet b in shells.FindAll((x) => x.GetType() == typeof(bullet) && x.isActive)) {
-                foreach (smallBomb sb in shells.FindAll((x) => x.GetType() == typeof(smallBomb) && x.isActive)) {
-                    if (intersection.circleInsideCircle(b.BoundingCircle, sb.BoundingCircle)) {
+            foreach (bullet b in ActiveShells.FindAll((x) => x.GetType() == typeof(bullet))) {
+                foreach (smallBomb sb in ActiveShells.FindAll((x)=>x.GetType() == typeof(smallBomb))) {
+                    if (entity.collision(b, sb)) {
+                        explode(sb.Position,
+                                smallBomb.explosionRadius,
+                                smallBomb.explosionDuration,
+                                sb.damage,
+                                smallBomb.explosionPitch());
                         b.kill();
-                        explosion e = new explosion(sb.Position, 50f, 2f, 25f);
-                        explosions.Add(e);
+                        sb.kill();
                     }
                 }
             }
 
             // Check if explosions intersect with enemies
-            foreach (explosion ex in explosions.FindAll((x) => x.isActive)) {
-                foreach (enemy e in enemies.FindAll()) 
-            }
-
-            foreach (shell s in shells) {
-                s.update(delta);
-                if (!s.isActive) { continue; }
-
-                foreach (enemy e in enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive)) {
-                    // At a later stage we should do a much faster AABB test before
-                    // doing a more complicated "inside polygon" check
-                    if (s.GetType() == typeof(bullet)) {
-                        if (intersection.pointInsidePolygon(s.Position, e.Hitbox)) {
-                            s.applyDamage(delta, e);
-                            break;
-                        }
-                    }
-
-                    if (s.GetType() == typeof(flak)) {
-                        flak f = (flak)s;
-
-                        if (f.explosionLife > 0) {
-                            if (intersection.circleInsidePolygon(s.position,
-                                                                 flak.explosionSizeDefault,
-                                                                 e.Hitbox)) {
-                                s.applyDamage(delta, e);
-                                break;
-                            }
-                        }
-                    }
-
-                    if (s.GetType() == typeof(smallBomb)) {
-                        smallBomb sb = (smallBomb)s;
-
-                        if (sb.explosionLife > 0 && sb.eOwner == shell.enumOwner.enemy) {
-                            if (intersection.circleInsideRectangle(sb.position,
-                                                                    smallBomb.explosionSizeDefault,
-                                                                    sprTurretBase.GetGlobalBounds())) {
-                                playerHealth -= sb.damage * delta;
-                                break;
-                            }
-                        }
+            foreach (explosion ex in ActiveExplosions) {
+                foreach (enemy e in ActiveEnemies) {
+                    if (entity.collision(ex, e)) {
+                        ex.applyDamage(delta, e);
                     }
                 }
             }
 
-            foreach (enemy e in enemies) {
-                e.update(delta);
+            // Check if we need to do anything else with shells (collisions etc)
+            foreach (shell s in ActiveShells) {
+                if (s.GetType() == typeof(flak)) {
+                    flak f = (flak)s;
 
+                    if (DateTime.Now >= f.explodeTime) {
+                        explode(f.Position,
+                                flak.explosionRadius,
+                                flak.explosionDuration,
+                                f.damage,
+                                flak.explosionPitch());
+                        f.kill();
+                        continue;
+                    }
+                }
+
+                if (s.GetType() == typeof(bullet)) {
+                    bullet b = (bullet)s;
+
+                    foreach (enemy e in ActiveEnemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive)) {
+                        if (entity.collision(b, e)) {
+                            b.applyDamage(delta, e);
+                            b.kill();
+                            continue;
+                        }
+                    }
+                }
+
+                if (s.GetType() == typeof(smallBomb)) {
+                    smallBomb sb = (smallBomb)s;
+
+                    if (sb.Position.Y >= Globals.ScreenSize.Y) {
+                        explode(sb.Position,
+                                smallBomb.explosionRadius,
+                                smallBomb.explosionDuration,
+                                sb.damage,
+                                smallBomb.explosionPitch());
+                        sb.kill();
+                        continue;
+                    }
+                }
+            }
+
+            foreach (enemy e in ActiveEnemies) {
                 if (e.lifeState == enemy.eLifeState.alive && (DateTime.Now - e.lastFire).TotalMilliseconds >= smallBomb.fireRate) {
                     e.lastFire = DateTime.Now;
 
-                    shell? fireThis = shells.Find((x) => x.isAlive == false && x.GetType() == typeof(smallBomb));
+                    smallBomb? fireThis = (smallBomb?)shells.Find((x) => !x.isActive && x.GetType() == typeof(smallBomb));
 
                     if (fireThis == null) {
-                        fireThis = new smallBomb(copySprite(sprSmallBomb), shell.enumOwner.enemy);
+                        fireThis = new smallBomb(copySprite(sprSmallBomb));
                         shells.Add(fireThis);
                     } else {
-                        ((smallBomb)fireThis).sprBomb.Rotation = 0;
+                        if (fireThis.Sprite != null) {
+                            fireThis.Sprite.Rotation = 0;
+                        }
                     }
                      
-                    Vector2f newPos = e.position + new Vector2f(0, e.sprite.TextureRect.Height / 2f - 10f);
-                    Vector2f newVel = e.velocity;
-                    smallBomb smallBombThis = (smallBomb)fireThis;
-                    smallBombThis.fire(newPos, newVel);
+                    Vector2f newPos = e.Position + new Vector2f(0, 0);
+                    Vector2f newVel = e.Velocity;
+                    fireThis.fire(newPos, newVel);
                 }
             }
 
@@ -389,16 +424,15 @@ namespace ww1defence {
 
             window.Draw(textWave);
 
-            // rotate the gun to point at crosshair
-            // Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
-            // double idk = Math.Atan2((double)curRelPos.Y, (double)curRelPos.X);
-            // sprTurretGun.Rotation = 90 + (float)(idk * 180 / Math.PI);
-            
-            foreach (enemy e in enemies) {
+            foreach (enemy e in ActiveEnemies) {
                 e.draw(window);
             }
 
-            foreach(shell s in shells) {
+            foreach (explosion ex in ActiveExplosions) {
+                ex.draw(window);
+            }
+
+            foreach(shell s in ActiveShells) {
                 s.draw(window);
             }
 
@@ -424,6 +458,8 @@ namespace ww1defence {
             window.Draw(sprFlakCrosshair);
             sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
             window.Draw(sprCrosshair);
+
+            // Draw HUD on top of scene
 
             window.Display();
         }
