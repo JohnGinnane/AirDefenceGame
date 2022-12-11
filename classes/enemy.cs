@@ -57,8 +57,16 @@ namespace ww1defence {
                     if (Sprite != null) { Sprite.Rotation += Velocity.X / 10 * delta; }
                 }
 
-                if (this.Position.X < -1000 || this.Position.X > Globals.ScreenSize.X + 1000 ||
-                    this.Position.Y < -1000 || this.Position.Y > Globals.ScreenSize.Y + 1000) {
+                float SpriteWidth  = 100f; 
+                float SpriteHeight = 100f;
+
+                if (Sprite != null) {
+                    SpriteWidth = Sprite.TextureRect.Width;
+                    SpriteHeight = Sprite.TextureRect.Height;
+                }
+
+                if (this.Position.X < -SpriteWidth  || this.Position.X > Globals.ScreenSize.X + SpriteWidth ||
+                    this.Position.Y < -SpriteHeight || this.Position.Y > Globals.ScreenSize.Y + SpriteHeight) {
                     lifeState = eLifeState.dead; // go straight to death off screen
                 }
             }

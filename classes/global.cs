@@ -12,7 +12,7 @@ namespace Global {
             set { screenSize = value; }
         }
 
-        public static bool DrawHitbox = true;
+        public static bool DrawHitbox = false;
         public static float grabity = 10f;
         public static float masterVolumeMulti = 0.5f;
 

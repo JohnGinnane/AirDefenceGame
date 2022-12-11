@@ -214,11 +214,11 @@ namespace ww1defence {
             }
             
             // offset the position by the width of the blimp to avoid "pop in"
-            newEnemy.Position.X = newEnemy.Position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
+            newEnemy.Position.X = newEnemy.Position.X + sprSmallBlimp.TextureRect.Width * -dir;
 
             if (newEnemy.Sprite != null) {
-                newEnemy.Sprite.Scale = new Vector2f(Math.Abs(newEnemy.Sprite.Scale.X) * dir * -1,
-                                                        Math.Abs(newEnemy.Sprite.Scale.Y));
+                newEnemy.Sprite.Scale = new Vector2f(Math.Abs(newEnemy.Sprite.Scale.X) * -dir,
+                                                     Math.Abs(newEnemy.Sprite.Scale.Y));
             }
 
             // set last fire to be in the future to delay the first bomb being dropped
@@ -254,7 +254,7 @@ namespace ww1defence {
                 }
             }
         }
-        
+
         public void update(float delta) {
             Input.Keyboard.update();
             Input.Mouse.update(window);
