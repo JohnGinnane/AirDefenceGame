@@ -211,7 +211,7 @@ namespace ww1defence {
             }
             
             // offset the position by the width of the blimp to avoid "pop in"
-            //newEnemy.Position.X = newEnemy.Position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
+            newEnemy.Position.X = newEnemy.Position.X + sprSmallBlimp.TextureRect.Width * dir * -1;
 
             if (newEnemy.Sprite != null) {
                 newEnemy.Sprite.Scale = new Vector2f(Math.Abs(newEnemy.Sprite.Scale.X) * dir * -1,
@@ -341,7 +341,7 @@ namespace ww1defence {
                     }
                 }
             }
-            
+
             // Check if explosions intersect with enemies
             foreach (explosion ex in ActiveExplosions) {
                 foreach (enemy e in ActiveEnemies) {
