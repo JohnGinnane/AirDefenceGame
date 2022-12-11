@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using Global;
 using SFML.Audio;
 using SFML.Graphics;
@@ -225,12 +227,11 @@ namespace ww1defence {
             explosion? e = explosions.Find((x) => !x.isActive);
 
             if (e == null) {
-                e = new explosion(pos, radius, duration, damage);
-            } else {
-                e.start(pos, radius, duration, damage, soundPitch);
+                e = new explosion();
+                explosions.Add(e);
             }
-
-            explosions.Add(e);
+            
+            e.start(pos, radius, duration, damage, soundPitch);
         }
 #endregion
 
@@ -262,9 +263,7 @@ namespace ww1defence {
             if (Input.Mouse["left"].isPressed) {
                 if ((DateTime.Now - mgLastFire).Milliseconds >= bullet.fireRate) {
                     mgLastFire = DateTime.Now;
-                    bullet? fireThis = (bullet?)shells.Find((x) => (
-                        !x.isActive && x.GetType() == typeof(bullet)
-                    ));
+                    bullet? fireThis = findInactive<bullet>(shells);
 
                     if (fireThis == null) {
                         fireThis = new bullet();
@@ -281,9 +280,7 @@ namespace ww1defence {
             if (Input.Mouse["right"].isPressed) {
                 if ((DateTime.Now - flakLastFire).Milliseconds >= flak.fireRate) {
                     flakLastFire = DateTime.Now;
-                    flak? fireThis = (flak?)shells.Find((x) => (
-                        !x.isActive && x.GetType() == typeof(flak)
-                    ));
+                    flak? fireThis = findInactive<flak>(shells);
                     
                     float timer = (flakTime * 1.1f - flakZoneThickness / 2f
                                    + util.randfloat(flakZoneThickness / -2, flakZoneThickness / 2)) / flak.speed * 1000;
@@ -396,7 +393,7 @@ namespace ww1defence {
                 if (e.lifeState == enemy.eLifeState.alive && (DateTime.Now - e.lastFire).TotalMilliseconds >= smallBomb.fireRate) {
                     e.lastFire = DateTime.Now;
 
-                    smallBomb? fireThis = (smallBomb?)shells.Find((x) => !x.isActive && x.GetType() == typeof(smallBomb));
+                    smallBomb? fireThis = findInactive<smallBomb>(shells);
 
                     if (fireThis == null) {
                         fireThis = new smallBomb(copySprite(sprSmallBomb));
@@ -416,6 +413,26 @@ namespace ww1defence {
             if (enemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive).Count == 0 && enemiesToSpawn == 0) {
                 increaseWave(); 
             }
+        }
+
+        public T? findInactive<T>(object list) {
+            if (!util.IsList(list)) { return default(T); }
+
+            if (list is IEnumerable) {
+                List<object> actual  = new List<object>();
+                var enumerator = ((IEnumerable) list).GetEnumerator();
+                while (enumerator.MoveNext()) {
+                    object o = enumerator.Current;
+                    if (o == null) { continue; }
+                    if (!util.IsSameOrSubclass(typeof(entity), o.GetType())) { continue; }
+                    entity e = (entity)o;
+
+                    if (e.isActive) { continue; }
+                    if (e.GetType() == typeof(T)) { return (T)o; }
+                }
+            }
+
+            return default(T);
         }
 
         public void draw() {

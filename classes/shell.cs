@@ -42,36 +42,38 @@ namespace ww1defence {
 
         internal CircleShape csExplosion;
 
-        public explosion(Vector2f position, float radius, float duration, float damage) : base() {
+        public explosion() : base() {
             csExplosion = new CircleShape();
-            start(position, radius, duration, damage);
+            csExplosion.OutlineColor = Colour.Orange;
+            csExplosion.FillColor = Color.Red;
         }
 
         public void start(Vector2f position, float radius, float duration, float damage, float pitch = 1f) {
-            if (isActive) { return; }
-            
             Position = position;
             initialDuration = duration;
-            this.duration = duration;
+            this.duration = initialDuration;
             initialRadius = radius;
-            this.radius = radius;
+            this.radius = initialRadius;
             Damage = damage;
             isActive = true;
 
-            csExplosion.Radius = Radius;
             csExplosion.OutlineColor = Colour.Orange;
-            csExplosion.OutlineThickness = initialRadius / 3f;
             csExplosion.FillColor = Color.Red;
+            csExplosion.Radius = Radius;
+            csExplosion.OutlineThickness = initialRadius / 3f;
             csExplosion.Origin = new Vector2f(csExplosion.Radius, csExplosion.Radius);
             Globals.playSound(ExplodeSFX, pitch: pitch);
 
-            Console.WriteLine($"Dur: {this.duration}");
+            test = DateTime.Now;
         }
+
+        internal DateTime test;
 
         public override void update(float delta)
         {
             if (isActive) {
                 base.update(delta);
+                //Console.WriteLine($"{test.ToString()} - {DateTime.Now.ToString("hh:mm:ss.ffff")} - init: {initialDuration}, dur: {duration}, a: {ExplosionAlpha}, d: {delta}");
 
                 duration -= delta;
                 
@@ -91,9 +93,9 @@ namespace ww1defence {
             if (isActive) {
                 csExplosion.Position = Position;
                 csExplosion.FillColor = csExplosion.FillColor.setAlpha(ExplosionAlpha);
-                csExplosion.OutlineColor = csExplosion.OutlineColor.setAlpha(ExplosionAlpha);
-
+                csExplosion.OutlineColor = csExplosion.OutlineColor.setAlpha(ExplosionAlpha);                
                 window.Draw(csExplosion);
+
                 drawHitbox(window);
             }
         }
@@ -146,11 +148,14 @@ namespace ww1defence {
 
         public override void draw(RenderWindow window) {
             if (isActive) {
-                rsShell.Position = Position;
-                rsShell.Rotation = Rotation;
-                window.Draw(rsShell);
-
-                drawHitbox(window);
+                if (Sprite == null) {
+                    rsShell.Position = Position;
+                    rsShell.Rotation = Rotation;
+                    window.Draw(rsShell);
+                    drawHitbox(window);
+                } else {
+                    base.draw(window);
+                }
             }
         }
     }
@@ -165,7 +170,7 @@ namespace ww1defence {
         public smallBomb(Sprite sprite) : base() {
             setSprite(sprite);
             sprite.Scale = new Vector2f(0.3f, 0.3f);
-            setBoundingCircleRadius((sprite.GetGlobalBounds().Height + sprite.GetGlobalBounds().Width) / 2f);
+            setBoundingCircleRadius((sprite.GetGlobalBounds().Height + sprite.GetGlobalBounds().Width) / 3f);
         }
 
         public new void fire(Vector2f position, Vector2f velocity) {

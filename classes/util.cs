@@ -5,6 +5,7 @@ using SFML.Graphics;
 using SFML.System;
 using SFML.Window;
 using System;
+using System.Collections;
 
 namespace Global {
     public static class util {
@@ -252,28 +253,46 @@ namespace Global {
         }
 
         public static Color setAlpha(this Color C, byte A) {
-            C.A = A;
-            return C;
+            return new Color(C.R, C.G, C.B, A);
         }
 
         public static Color setRed(this Color C, byte R) {
-            C.R = R;
-            return C;
+            return new Color(R, C.G, C.B, C.A);
         }
 
         public static Color setGreen(this Color C, byte G) {
-            C.G = G; // coconut gun
-            return C;
+            return new Color(C.R, G, C.B, C.A);
         }
 
         public static Color setBlue(this Color C, byte B) {
-            C.B = B;
-            return C;
+            return new Color(C.R, C.G, B, C.A);
         }
-
 
         public static void Use<T>(this T item, Action<T> work) {
             work(item);
+        }
+
+        // https://stackoverflow.com/a/17190236
+        public static bool IsList(object o) {
+            if (o == null) { return false; }
+            return o is IList &&
+                   o.GetType().IsGenericType &&
+                   o.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>));
+        }
+
+        public static Type? GetListGeneric(object o) {
+            if (!IsList(o)) { return null; }
+            Type[] args = o.GetType().GetGenericTypeDefinition().GetGenericArguments();
+            if (args.Count() > 0) { return args[0]; }
+
+            return null;
+        }
+
+        // https://stackoverflow.com/a/2742288
+        public static bool IsSameOrSubclass(Type potentialBase, Type potentialDescendant)
+        {
+            return potentialDescendant.IsSubclassOf(potentialBase)
+                || potentialDescendant == potentialBase;
         }
     } // end class
 } // end namespace

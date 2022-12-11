@@ -56,7 +56,7 @@ namespace ww1defence {
         public entity() {
             hitbox = new List<Vector2f>();            
             csBoundingCircle = new CircleShape();
-            sprite = new Sprite();
+            sprite = null;
 
             Position = new Vector2f();
             Velocity = new Vector2f();
@@ -80,9 +80,9 @@ namespace ww1defence {
 
         internal virtual void drawHitbox(RenderWindow window) {
             if (isActive && Globals.DrawHitbox) {
-                if (Hitbox.Count == 0) {
-                    window.Draw(BoundingCircle);
-                } else {
+                window.Draw(BoundingCircle);
+
+                if (Hitbox.Count > 0) {
                     VertexArray va = util.VectorsToVertexArray(Hitbox, Colour.DarkGreen, Color.Transparent);
                     va.Append(va[0]); // wrap around back to first point
                     window.Draw(va);                    
@@ -111,6 +111,15 @@ namespace ww1defence {
 
         public void setHitbox(List<Vector2f> points) {
             hitbox = points;
+
+            // find furthest point and then use that as bounding circle
+            float farthest = 0;
+            foreach (Vector2f v in hitbox) {
+                if (util.distance(new Vector2f(), v) > farthest) {
+                    farthest = util.distance(new Vector2f(), v);
+                }
+            }
+            setBoundingCircleRadius(farthest);
         }
 
         public void setSprite(Sprite newSprite, bool rebuildHitbox = false) {
@@ -139,7 +148,12 @@ namespace ww1defence {
             if (B == null) { return false; }
 
             // The bounding circle should always cover all hitbox points
-            if (!fastIntersection(A, B)) { return false; }
+            bool fi = fastIntersection(A, B);
+            if (A.Hitbox.Count == 0 && B.Hitbox.Count == 0) {
+                return fi;
+            }
+
+            if (!fi) { return false; }
 
             // if one entity DOES have a hitbox then do circle to polygon
             // Make sure A always has the hitbox and B doesn't
