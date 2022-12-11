@@ -60,6 +60,9 @@ namespace ww1defence {
         
         private DateTime flakLastFire;
         private DateTime mgLastFire;
+        private float mgInitialMaxSpread = 1f;
+        private float mgMaxSpread = 1f;
+        private float mgFinalMaxSpread = 45f; // why
         private float playerHealth = 100f;
         private RectangleShape rsHealthBackground;
         private RectangleShape rsHealthCurrent;
@@ -251,7 +254,7 @@ namespace ww1defence {
                 }
             }
         }
-
+        
         public void update(float delta) {
             Input.Keyboard.update();
             Input.Mouse.update(window);
@@ -259,6 +262,8 @@ namespace ww1defence {
             if (Input.Keyboard["escape"].isPressed) {
                 window.Close();
             }
+
+            float mgSpreadNew = delta * -4f;
 
             if (Input.Mouse["left"].isPressed) {
                 if ((DateTime.Now - mgLastFire).Milliseconds >= bullet.fireRate) {
@@ -270,12 +275,16 @@ namespace ww1defence {
                         shells.Add(fireThis);
                     }
                     
-                    Vector2f newVel = util.normalise(sprCrosshair.Position - sprTurretGun.Position) * bullet.speed;
+                    Vector2f newVel = util.rotate(util.normalise(sprCrosshair.Position - sprTurretGun.Position),
+                                                  util.deg2rad(util.randfloat(mgMaxSpread / -2f, mgMaxSpread / 2f))) * bullet.speed;
                     Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
 
                     fireThis.fire(newPos, newVel);
+                    mgSpreadNew += 1000f / bullet.fireRate * delta * 4f;
                 }
             }
+
+            mgMaxSpread = Math.Clamp(mgMaxSpread + mgSpreadNew, mgInitialMaxSpread, mgFinalMaxSpread);
 
             if (Input.Mouse["right"].isPressed) {
                 if ((DateTime.Now - flakLastFire).Milliseconds >= flak.fireRate) {
