@@ -169,6 +169,7 @@ namespace ww1defence {
         
         public smallBomb(Sprite sprite) : base() {
             setSprite(sprite);
+            SpriteOffsetRotation = 90f;
             sprite.Scale = new Vector2f(0.3f, 0.3f);
             setBoundingCircleRadius((sprite.GetGlobalBounds().Height + sprite.GetGlobalBounds().Width) / 3f);
         }
