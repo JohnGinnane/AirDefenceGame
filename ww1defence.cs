@@ -322,21 +322,26 @@ namespace ww1defence {
                 ex.update(delta);
             }
 
-            // Check if any BULLETS have intersected with BOMBS
-            foreach (bullet b in ActiveShells.FindAll((x) => x.GetType() == typeof(bullet))) {
-                foreach (smallBomb sb in ActiveShells.FindAll((x)=>x.GetType() == typeof(smallBomb))) {
-                    if (entity.collision(b, sb)) {
+            // Check if any BOMBS have been intersected by BULLETS or EXPLOSIONS
+            //foreach (smallBomb sb in ActiveShells.FindAll())
+            foreach (smallBomb sb in ActiveShells.AllOf<smallBomb>()) {
+                List<entity> suspects = new List<entity>();
+                suspects.AddRange(ActiveShells.AllOf<bullet>());
+                suspects.AddRange(ActiveExplosions);
+
+                foreach (entity s in suspects) {
+                    if (entity.collision(s, sb)) {                        
                         explode(sb.Position,
                                 smallBomb.explosionRadius,
                                 smallBomb.explosionDuration,
                                 sb.damage,
                                 smallBomb.explosionPitch());
-                        b.kill();
+                        s.kill();
                         sb.kill();
                     }
                 }
             }
-
+            
             // Check if explosions intersect with enemies
             foreach (explosion ex in ActiveExplosions) {
                 foreach (enemy e in ActiveEnemies) {

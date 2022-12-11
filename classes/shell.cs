@@ -93,7 +93,7 @@ namespace ww1defence {
             if (isActive) {
                 csExplosion.Position = Position;
                 csExplosion.FillColor = csExplosion.FillColor.setAlpha(ExplosionAlpha);
-                csExplosion.OutlineColor = csExplosion.OutlineColor.setAlpha(ExplosionAlpha);                
+                csExplosion.OutlineColor = csExplosion.OutlineColor.setAlpha(ExplosionAlpha);
                 window.Draw(csExplosion);
 
                 drawHitbox(window);

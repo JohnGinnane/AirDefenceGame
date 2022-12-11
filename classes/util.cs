@@ -272,6 +272,16 @@ namespace Global {
             work(item);
         }
 
+        public static List<T> AllOf<T>(this IEnumerable list) {
+            List<T> output = new List<T>();
+
+            foreach (object o in list) {
+                if (o is T) { output.Add((T)o); }
+            }
+
+            return output;
+        }
+
         // https://stackoverflow.com/a/17190236
         public static bool IsList(object o) {
             if (o == null) { return false; }
