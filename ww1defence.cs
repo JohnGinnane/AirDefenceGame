@@ -326,8 +326,6 @@ namespace ww1defence {
                                          flakTurnSpeed * delta);
             sprTurretGun.Rotation = sprTurretGun.Rotation + moveAngle;
 
-            sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, (Vector2f)Input.Mouse.Position)));
-
             handleWave();
 
             foreach (shell s in ActiveShells) {
@@ -497,11 +495,16 @@ namespace ww1defence {
             window.Draw(csFlakZone);
 
             // Always display crosshair on top of background
-            window.Draw(sprFlakCrosshair);
+            // sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, (Vector2f)Input.Mouse.Position)));
+
+            // flak crosshair is fixed to red zone
+            sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -flakTime + flakZoneThickness / 4f));
+            window.Draw(sprFlakCrosshair);            
 
             // sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
             // window.Draw(sprCrosshair);
 
+            // mg crosshair spread is shown by larger crosshair
             foreach (KeyValuePair<double, RectangleShape> kvp in dCrosshair) {
                 Vector2f offset = util.rotate(new Vector2f(7 + mgMaxSpread * 2f, 0), kvp.Key);
                 kvp.Value.Position = (Vector2f)Input.Mouse.Position + offset;
