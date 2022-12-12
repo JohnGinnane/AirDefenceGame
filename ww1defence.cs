@@ -24,7 +24,8 @@ namespace ww1defence {
         Text textWave;
 
         private Texture textureSpritesheet;
-        private Sprite sprCrosshair;
+        //private Sprite sprCrosshair;
+        private Dictionary<double, RectangleShape> dCrosshair;
         private Sprite sprFlakCrosshair;
         private Sprite sprTurretBase;
         private Sprite sprTurretGun;
@@ -82,8 +83,18 @@ namespace ww1defence {
 
             textureSpritesheet = new Texture("images/spritesheet.png");
 
-            sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
-            sprCrosshair.Origin = new Vector2f(16, 16);
+            //sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
+            //sprCrosshair.Origin = new Vector2f(16, 16);
+
+            dCrosshair = new Dictionary<double, RectangleShape>();
+            for (double i = 0; i < Math.PI * 2f; i += Math.PI / 2f) {
+                Console.WriteLine($"Degrees: {util.rad2deg(i)}, Radians: {i}");
+                RectangleShape rs = new RectangleShape(new Vector2f(8, 2));
+                rs.Rotation = (float)util.rad2deg(i);
+                rs.FillColor = Color.Black;
+                rs.Origin = rs.Size / 2f;
+                dCrosshair.Add(i, rs);
+            }
 
             sprFlakCrosshair = new Sprite(textureSpritesheet, new IntRect(32, 64, 32, 32));
             sprFlakCrosshair.Origin = new Vector2f(16, 16);
@@ -275,7 +286,7 @@ namespace ww1defence {
                         shells.Add(fireThis);
                     }
                     
-                    Vector2f newVel = util.rotate(util.normalise(sprCrosshair.Position - sprTurretGun.Position),
+                    Vector2f newVel = util.rotate(util.normalise((Vector2f)Input.Mouse.Position - sprTurretGun.Position),
                                                   util.deg2rad(util.randfloat(mgMaxSpread / -2f, mgMaxSpread / 2f))) * bullet.speed;
                     Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
 
@@ -308,14 +319,14 @@ namespace ww1defence {
             }
 
             // Handle flak cross hair
-            Vector2f curRelPos = sprCrosshair.Position - sprTurretGun.Position;
+            Vector2f curRelPos = (Vector2f)Input.Mouse.Position - sprTurretGun.Position;
             float targetAngle = 90f + (float)(Math.Atan2((double)curRelPos.Y, (double)curRelPos.X) * 180 / Math.PI);
             float moveAngle = Math.Clamp((targetAngle - sprTurretGun.Rotation),
                                          -flakTurnSpeed * delta,
                                          flakTurnSpeed * delta);
             sprTurretGun.Rotation = sprTurretGun.Rotation + moveAngle;
 
-            sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, sprCrosshair.Position)));
+            sprFlakCrosshair.Position = sprTurretGun.toWorld(new Vector2f(0, -util.distance(sprTurretGun.Position, (Vector2f)Input.Mouse.Position)));
 
             handleWave();
 
@@ -487,8 +498,15 @@ namespace ww1defence {
 
             // Always display crosshair on top of background
             window.Draw(sprFlakCrosshair);
-            sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
-            window.Draw(sprCrosshair);
+
+            // sprCrosshair.Position = (Vector2f)Mouse.GetPosition(window);
+            // window.Draw(sprCrosshair);
+
+            foreach (KeyValuePair<double, RectangleShape> kvp in dCrosshair) {
+                Vector2f offset = util.rotate(new Vector2f(7 + mgMaxSpread * 2f, 0), kvp.Key);
+                kvp.Value.Position = (Vector2f)Input.Mouse.Position + offset;
+                window.Draw(kvp.Value);
+            }
 
             // Draw HUD on top of scene
 
