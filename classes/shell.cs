@@ -101,8 +101,8 @@ namespace ww1defence {
         }
         
         public void applyDamage(float delta, entity e) {
-            if (isActive && e.isActive) {
-                e.health -= damage * delta;
+            if (isActive && e.isActive && e.health > 0) {
+                e.health = Math.Max(e.health - (damage * delta), 0);
             }
         }
     }
@@ -241,14 +241,14 @@ namespace ww1defence {
 
         public override void applyDamage(float delta, entity e)
         {
-            if (isActive && e.isActive) {
+            if (isActive && e.isActive && e.health > 0) {
                 if (e.GetType() == typeof(enemy)) {
                     enemy en = (enemy)e;
                     if (en.lifeState == enemy.eLifeState.alive) {
-                        en.health -= damage;
+                        en.health = Math.Max(en.health - damage, 0);
                     }
                 } else {
-                    e.health -= damage;
+                    e.health = Math.Max(e.health - damage, 0);
                 }
 
                 kill();

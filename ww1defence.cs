@@ -52,6 +52,10 @@ namespace ww1defence {
         }
 
         public List<enemy> ActiveEnemies {
+            get { return enemies.FindAll((x) => x.isActive); }
+        }
+
+        public List<enemy> ActiveAliveEnemies {
             get { return enemies.FindAll((x) => x.isActive && x.lifeState == enemy.eLifeState.alive); }
         }
 
@@ -206,7 +210,7 @@ namespace ww1defence {
 
         public void spawnEnemy() {
             // check for spare objects not in use
-            enemy? newEnemy = enemies.Find((x) => x.lifeState == enemy.eLifeState.dead);
+            enemy? newEnemy = enemies.Find((x) => !x.isActive);
 
             int dir = util.randsign();
             Vector2f pos = new Vector2f((dir < 0 ? Globals.ScreenSize.X - 1 : 1),
@@ -218,6 +222,7 @@ namespace ww1defence {
                 enemies.Add(newEnemy);
             } else {
                 newEnemy.Rotation = 0;
+                if (newEnemy.Sprite != null) { newEnemy.Sprite.Rotation = 0; }
                 newEnemy.Position = pos;
                 newEnemy.Velocity = vel;
                 newEnemy.health = newEnemy.initialHealth;
@@ -362,7 +367,7 @@ namespace ww1defence {
 
             // Check if explosions intersect with enemies
             foreach (explosion ex in ActiveExplosions) {
-                foreach (enemy e in ActiveEnemies) {
+                foreach (enemy e in ActiveAliveEnemies) {
                     if (entity.collision(ex, e)) {
                         ex.applyDamage(delta, e);
                     }
@@ -388,10 +393,9 @@ namespace ww1defence {
                 if (s.GetType() == typeof(bullet)) {
                     bullet b = (bullet)s;
 
-                    foreach (enemy e in ActiveEnemies.FindAll((x) => x.lifeState == enemy.eLifeState.alive)) {
+                    foreach (enemy e in ActiveAliveEnemies) {
                         if (entity.collision(b, e)) {
                             b.applyDamage(delta, e);
-                            b.kill();
                             continue;
                         }
                     }
@@ -412,7 +416,8 @@ namespace ww1defence {
                 }
             }
 
-            foreach (enemy e in ActiveEnemies) {
+            // check if enemies can attack
+            foreach (enemy e in ActiveAliveEnemies) {
                 if (e.lifeState == enemy.eLifeState.alive && (DateTime.Now - e.lastFire).TotalMilliseconds >= smallBomb.fireRate) {
                     e.lastFire = DateTime.Now;
 

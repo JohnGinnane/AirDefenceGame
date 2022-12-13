@@ -6,9 +6,7 @@ namespace ww1defence {
     public abstract class enemy : entity {
         public enum eLifeState {
             alive,
-            dying,
-            dead,
-            despawning
+            dead
         }
 
         public eLifeState lifeState;
@@ -41,13 +39,14 @@ namespace ww1defence {
         public override void update(float delta)
         {
             if (health <= 0 && lifeState == eLifeState.alive) {
-                lifeState = eLifeState.dying;
+                lifeState = eLifeState.dead;
             }
 
-            if (lifeState != eLifeState.dead) {
-                Position = Position + Velocity * delta;
+            if (isActive) {                    
+                Position = Position + (Velocity * delta);
+                Rotation = SpriteOffsetRotation + (float)(Math.Atan2((double)Velocity.Y, Math.Abs((double)Velocity.X)) * 180 / Math.PI);
 
-                if (lifeState == eLifeState.dying) {
+                if (lifeState == eLifeState.dead) {
                     // remove horizonal velocity
                     // remove 5% per second
                     Velocity.X = Velocity.X - (Velocity.X * 0.1f * delta);
@@ -67,16 +66,19 @@ namespace ww1defence {
 
                 if (this.Position.X < -SpriteWidth  || this.Position.X > Globals.ScreenSize.X + SpriteWidth ||
                     this.Position.Y < -SpriteHeight || this.Position.Y > Globals.ScreenSize.Y + SpriteHeight) {
-                    lifeState = eLifeState.dead; // go straight to death off screen
+                    // lifeState = eLifeState.dead; // go straight to death off screen
+                    Console.WriteLine("Despawning enemy");
+                    kill();
                 }
             }
         }
         
         public override void draw(RenderWindow window)
         {
-            if (lifeState != eLifeState.dead) {
+            if (isActive) {
                 if (Sprite != null) {
                     Sprite.Position = Position;
+                    //Sprite.Rotation = Rotation;
                     window.Draw(sprite);
 
                     if (lifeState == eLifeState.alive) {
