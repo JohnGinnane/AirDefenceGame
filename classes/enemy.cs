@@ -67,7 +67,6 @@ namespace ww1defence {
                 if (this.Position.X < -SpriteWidth  || this.Position.X > Globals.ScreenSize.X + SpriteWidth ||
                     this.Position.Y < -SpriteHeight || this.Position.Y > Globals.ScreenSize.Y + SpriteHeight) {
                     // lifeState = eLifeState.dead; // go straight to death off screen
-                    Console.WriteLine("Despawning enemy");
                     kill();
                 }
             }

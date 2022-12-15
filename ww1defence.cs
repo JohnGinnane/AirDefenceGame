@@ -92,7 +92,6 @@ namespace ww1defence {
 
             dCrosshair = new Dictionary<double, RectangleShape>();
             for (double i = 0; i < Math.PI * 2f; i += Math.PI / 2f) {
-                Console.WriteLine($"Degrees: {util.rad2deg(i)}, Radians: {i}");
                 RectangleShape rs = new RectangleShape(new Vector2f(8, 2));
                 rs.Rotation = (float)util.rad2deg(i);
                 rs.FillColor = Color.Black;
@@ -197,7 +196,6 @@ namespace ww1defence {
         }
         
         public void increaseWave() {
-            Console.WriteLine("Increasing Wave");
             wave += 1;
             enemiesToSpawn = (int)(10 + (Math.Pow(wave, 1.3)));
             nextEnemySpawn = DateTime.Now;
