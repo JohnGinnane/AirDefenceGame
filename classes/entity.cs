@@ -8,6 +8,7 @@ namespace ww1defence {
         public Vector2f Velocity;
         public float Rotation;
         public float SpriteOffsetRotation;
+        public bool isStatic = false;
 
         public enum enumFaction {
             friend,
@@ -15,6 +16,8 @@ namespace ww1defence {
             ally,
             neutral
         }
+
+        public entity? parent = null;
         
         internal Sprite? sprite;
         public Sprite? Sprite {
@@ -74,8 +77,10 @@ namespace ww1defence {
         }
 
         public virtual void update(float delta) {
-            Position = Position + (Velocity * delta);
-            Rotation = SpriteOffsetRotation + (float)(Math.Atan2((double)Velocity.Y, (double)Velocity.X) * 180 / Math.PI);
+            if (parent == null && !isStatic) {
+                Position = Position + (Velocity * delta);
+                Rotation = SpriteOffsetRotation + (float)(Math.Atan2((double)Velocity.Y, (double)Velocity.X) * 180 / Math.PI);
+            }
         }
 
         internal virtual void drawHitbox(RenderWindow window) {
@@ -93,8 +98,18 @@ namespace ww1defence {
         public virtual void draw(RenderWindow window) {
             if (isActive) {
                 if (Sprite != null) { 
-                    Sprite.Position = Position;
-                    Sprite.Rotation = Rotation;
+                    if (parent == null) {
+                        Sprite.Position = Position;
+                        Sprite.Rotation = Rotation;                    
+                    } else {
+                        if (parent.Sprite != null) {
+                            Sprite.Position = parent.Sprite.toWorld(Position);
+                            Sprite.Rotation = parent.Rotation + Rotation;
+                        } else {
+                            Sprite.Position = parent.Position + Position;
+                        }
+                    }
+                    
                     window.Draw(Sprite);
                 }
 
