@@ -71,6 +71,11 @@ namespace ww1defence {
                 }
             }
         }
+
+        public override void kill() {
+            lifeState = eLifeState.dead;
+            isActive = false;
+        }
         
         public override void draw(RenderWindow window)
         {
