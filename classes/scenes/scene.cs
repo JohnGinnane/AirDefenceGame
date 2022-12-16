@@ -1,4 +1,5 @@
 using SFML.Graphics;
+using SFML.Window;
 using Global;
 
 namespace ww1defence {
@@ -6,6 +7,10 @@ namespace ww1defence {
         public abstract void update(float delta);
 
         public abstract void draw(RenderWindow window);
+
+#region "Events"
+        public abstract void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e);
+#endregion
     }
 
     public class menu_scene : scene
@@ -57,5 +62,9 @@ namespace ww1defence {
             }
         }
 
+        public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e)
+        {
+            
+        }
     }
 }
