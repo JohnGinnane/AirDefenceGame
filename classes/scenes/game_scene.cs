@@ -71,8 +71,8 @@ namespace ww1defence {
         }
         
 
-        public game_scene() {
-            //this.window= window;
+        public game_scene(RenderWindow window) {
+            window.SetMouseCursorVisible(false);
 
             sceneView = new View(new FloatRect(0, 0, (float)Globals.ScreenSize.X, (float)Globals.ScreenSize.Y));
 
@@ -431,12 +431,32 @@ namespace ww1defence {
                 window.Draw(kvp.Value);
             }
         }
-#endregion
+        #endregion
 
-#region "Events"
-        
-        public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
+        #region "Events"
+        public override void MouseMoved(object? sender, MouseMoveEventArgs? e) {
             
+        }
+
+        public override void MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
+            
+        }
+
+        public override void MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
+
+        }
+
+        public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
+            if (e == null) { return; }
+
+            if (e.Delta > 0 && flakTime < maxFlakTime) {
+                flakTime += e.Delta * flakScrollSpeed;;
+            } else if (e.Delta < 0 && flakTime > minFlakTime) {
+                flakTime += e.Delta * flakScrollSpeed;
+            }
+
+            if (flakTime < minFlakTime) { flakTime = minFlakTime; }
+            if (flakTime > maxFlakTime) { flakTime = maxFlakTime; }
         }
 #endregion
     }

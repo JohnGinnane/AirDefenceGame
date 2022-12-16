@@ -96,5 +96,9 @@ namespace Global {
 
             mousePressing = false;
         }
+
+        public virtual void ControL_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
+
+        }
     }
 }

@@ -28,11 +28,16 @@ namespace ww1defence {
                                       "World War One Defence");
             // TODO: Replace "software cursor" with actual cursor later
             // Requires converting image to byte[]
-            window.SetMouseCursorVisible(false);
             window.Closed += window_CloseWindow;
             window.MouseWheelScrolled += window_MouseWheelScrolled;
+            window.MouseMoved += window_MouseMoved;
+            window.MouseButtonPressed += window_MouseButtonPressed;
+            window.MouseButtonReleased += window_MouseButtonReleased;
 
             activeScenes = new List<scene>();
+
+            // Load the menu scene as the first scene
+            curScene = new menu_scene(window);
 
             // Load sound buffers
             Globals.Buffers.Add("sound/machine_gun1.wav", new SoundBuffer("sound/machine_gun1.wav"));
@@ -56,17 +61,20 @@ namespace ww1defence {
             window.Close();
         }
 
+        public void window_MouseMoved(object? sender, MouseMoveEventArgs? e) {
+            curScene.MouseMoved(sender, e);
+        }
+
+        public void window_MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
+            curScene.MouseButtonPressed(sender, e);
+        }
+
+        public void window_MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
+            curScene.MouseButtonReleased(sender, e);
+        }
+
         public void window_MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs e) {
-            if (e == null) { return; }
-
-            if (e.Delta > 0 && flakTime < maxFlakTime) {
-                flakTime += e.Delta * flakScrollSpeed;;
-            } else if (e.Delta < 0 && flakTime > minFlakTime) {
-                flakTime += e.Delta * flakScrollSpeed;
-            }
-
-            if (flakTime < minFlakTime) { flakTime = minFlakTime; }
-            if (flakTime > maxFlakTime) { flakTime = maxFlakTime; }
+            curScene.MouseWheelScrolled(sender, e);
         }
 #endregion
 
@@ -88,12 +96,16 @@ namespace ww1defence {
         }
 
         public void update(float delta) {
-            Input.Keyboard.update();
-            Input.Mouse.update(window);
+            if (window.HasFocus()) {
+                Input.Keyboard.update();
+                Input.Mouse.update(window);
+            }
 
             if (Input.Keyboard["escape"].isPressed) {
                 window.Close();
             }
+
+            curScene.update(delta);
         }
 
         public void draw() {

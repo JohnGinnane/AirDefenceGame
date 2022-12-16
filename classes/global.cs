@@ -80,8 +80,6 @@ namespace Global {
                     } else {
                         return spr;
                     }
-
-                    return Sprites[name];
                 } else {
                     ex = new Exception($"Sprite {name} is not defined!");
                 }
