@@ -22,6 +22,38 @@ namespace ww1defence {
         private List<scene> activeScenes;
 #endregion
 
+        public void SceneRequestHandler(object? sender, SceneRequestEventArgs? e) {
+            // perhaps the scene request could specify a parent scene
+            // this way the "Settings" scene can point BACK to the menu scene?
+            if (e != null) {
+                if (e.targetScene == null) {
+                    window.Close();
+                } else {
+                    // Check if the scene is already loaded
+                    scene? newScene = activeScenes.Find((x) => x.GetType() == e.targetScene);
+
+                    if (newScene == null) {
+                        newScene = (scene?)Activator.CreateInstance(e.targetScene, window);
+
+                        if (newScene != null) {
+                            newScene.sceneRequestEvent += SceneRequestHandler;
+                        }
+                    } else {
+                        // remove from stack
+                        activeScenes.Remove(newScene);
+                    }
+
+                    if (newScene != null) {
+                        if (!e.unloadMe) {
+                            activeScenes.Prepend<scene>(curScene);
+                        }
+
+                        curScene = (scene)newScene;
+                    }
+                }
+            }
+        }
+
         public ww1defence() {
             window = new RenderWindow(new SFML.Window.VideoMode((uint)Globals.ScreenSize.X, 
                                                                 (uint)Globals.ScreenSize.Y),
@@ -38,6 +70,7 @@ namespace ww1defence {
 
             // Load the menu scene as the first scene
             curScene = new menu_scene(window);
+            curScene.sceneRequestEvent += SceneRequestHandler;
 
             // Load sound buffers
             Globals.Buffers.Add("sound/machine_gun1.wav", new SoundBuffer("sound/machine_gun1.wav"));
