@@ -26,6 +26,8 @@ namespace ww1defence {
             // perhaps the scene request could specify a parent scene
             // this way the "Settings" scene can point BACK to the menu scene?
             if (e != null) {
+                // Not specifying a target scene will close the game
+                // Perhaps we should have a "Exit Game" scene instead?
                 if (e.targetScene == null) {
                     window.Close();
                 } else {
@@ -45,7 +47,7 @@ namespace ww1defence {
 
                     if (newScene != null) {
                         if (!e.unloadMe) {
-                            activeScenes.Prepend<scene>(curScene);
+                            activeScenes.Insert(0, curScene);
                         }
 
                         curScene = (scene)newScene;
@@ -134,9 +136,9 @@ namespace ww1defence {
                 Input.Mouse.update(window);
             }
 
-            if (Input.Keyboard["escape"].isPressed) {
-                window.Close();
-            }
+            // if (Input.Keyboard["escape"].isPressed) {
+            //     window.Close();
+            // }
 
             curScene.update(delta);
         }
@@ -145,7 +147,6 @@ namespace ww1defence {
             window.Clear(Colour.LightBlue);
 
             curScene.draw(window);
-            // Draw HUD on top of scene
 
             window.Display();
         }

@@ -70,7 +70,6 @@ namespace ww1defence {
             get { return explosions.FindAll((x) => x.isActive); }
         }
         
-
         public game_scene(RenderWindow window) {
             window.SetMouseCursorVisible(false);
 
@@ -216,6 +215,10 @@ namespace ww1defence {
 #region "Main"
         public override void update(float delta) {
             float mgSpreadNew = delta * -4f;
+
+            if (Input.Keyboard["escape"].isPressed) {
+                onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene), false));
+            }
 
             if (Input.Mouse["left"].isPressed) {
                 if ((DateTime.Now - mgLastFire).Milliseconds >= bullet.fireRate) {
@@ -430,6 +433,8 @@ namespace ww1defence {
                 kvp.Value.Position = (Vector2f)Input.Mouse.Position + offset;
                 window.Draw(kvp.Value);
             }
+            
+            // Draw HUD on top of scene
         }
         #endregion
 

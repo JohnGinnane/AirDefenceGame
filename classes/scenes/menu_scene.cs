@@ -18,22 +18,22 @@ namespace ww1defence {
 
             button btnPlay = new button();
             btnPlay.Text = "Play";
-            btnPlay.Position = new SFML.System.Vector2f(halfScreenWidth, division * 1f);
             btnPlay.Size = new SFML.System.Vector2f(100, 50);
+            btnPlay.Position = new SFML.System.Vector2f(halfScreenWidth - btnPlay.Size.X/2f, division * 1f);
             btnPlay.Click += btnPlay_Click;
             controls.Add(btnPlay);
 
             button btnSettings = new button();
             btnSettings.Text = "Settings";
-            btnSettings.Position = new SFML.System.Vector2f(halfScreenWidth, division * 2f);
             btnSettings.Size = new SFML.System.Vector2f(150, 50);
+            btnSettings.Position = new SFML.System.Vector2f(halfScreenWidth - btnSettings.Size.X/2f, division * 2f);
             btnSettings.Click += btnSettings_Click;
             controls.Add(btnSettings);
 
             button btnQuit = new button();
             btnQuit.Text = "Quit";
-            btnQuit.Position = new SFML.System.Vector2f(halfScreenWidth, division * 3f);
-            btnQuit.Size = new SFML.System.Vector2f(100, 5);
+            btnQuit.Size = new SFML.System.Vector2f(100, 50);
+            btnQuit.Position = new SFML.System.Vector2f(halfScreenWidth - btnQuit.Size.X/2f, division * 3f);
             btnQuit.Click += btnQuit_Click;
             controls.Add(btnQuit);
         }
@@ -50,7 +50,7 @@ namespace ww1defence {
 
 #region "Events"
         public void btnPlay_Click(object? sender, EventArgs? e) {
-            Console.WriteLine("Play button pressed!");
+            onSceneRequested(this, new SceneRequestEventArgs(typeof(game_scene)));
         }
 
         public void btnSettings_Click(object? sender, EventArgs? e) {

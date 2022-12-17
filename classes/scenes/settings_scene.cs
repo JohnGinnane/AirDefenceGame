@@ -1,5 +1,6 @@
 using SFML.Graphics;
 using SFML.Window;
+using SFML.System;
 using Global;
 
 namespace ww1defence {   
@@ -7,6 +8,7 @@ namespace ww1defence {
     public class settings_scene : scene
     {
         private List<control> controls;
+        private slider sldVolume;
 
         public settings_scene(RenderWindow window) {
             window.SetMouseCursorVisible(true);
@@ -16,16 +18,27 @@ namespace ww1defence {
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
             float division = Globals.ScreenSize.Y / 5f;
 
+            // Volume slider
+            sldVolume = new slider();
+            sldVolume.Size = new Vector2f(300, 50);
+            sldVolume.Position = new Vector2f(halfScreenWidth - sldVolume.Size.X/2f, division * 1f);
+            sldVolume.MinimumValue = 0f;
+            sldVolume.MaximumValue = 1f;
+            sldVolume.Value = Globals.masterVolumeMulti;
+            controls.Add(sldVolume);
+
             button btnBack = new button();
             btnBack.Text = "Back";
-            btnBack.Size = new SFML.System.Vector2f(100, 50);
-            btnBack.Position = new SFML.System.Vector2f(halfScreenWidth - btnBack.Size.X/2f, division * 3f);
+            btnBack.Size = new Vector2f(100, 50);
+            btnBack.Position = new Vector2f(halfScreenWidth - btnBack.Size.X/2f, division * 3f);
             btnBack.Click += btnBack_Click;
             controls.Add(btnBack);
         }
 
         public override void update(float delta) {
-            
+            if (sldVolume != null) {
+                Globals.masterVolumeMulti = sldVolume.Value;
+            }
         }
 
         public override void draw(RenderWindow window) {
@@ -36,7 +49,6 @@ namespace ww1defence {
 
 #region "Events"
         public void btnBack_Click(object? sender, EventArgs? e) {
-            Console.WriteLine("GO BACK");
             onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
         }
 
