@@ -46,7 +46,7 @@ namespace ww1defence {
         private float playerHealth = 100f;
         private RectangleShape rsHealthBackground;
         private RectangleShape rsHealthCurrent;
-
+        private int score;
 
         // Entities        
         private List<shell> shells;
@@ -71,8 +71,6 @@ namespace ww1defence {
         }
         
         public game_scene(RenderWindow window) {
-            window.SetMouseCursorVisible(false);
-
             sceneView = new View(new FloatRect(0, 0, (float)Globals.ScreenSize.X, (float)Globals.ScreenSize.Y));
 
             //sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
@@ -309,6 +307,18 @@ namespace ww1defence {
                 foreach (enemy e in ActiveAliveEnemies) {
                     if (entity.collision(ex, e)) {
                         ex.applyDamage(delta, e);
+
+                        // if enemy is dead then increase score
+                        if (e.health <= 0) { score++; }
+                    }
+                }
+
+                // or with you
+                if (intersection.circleInsideRectangle(ex.Position, ex.Radius, sprTurretBase.GetGlobalBounds())) {
+                    playerHealth -= ex.damage * delta;
+
+                    if (playerHealth <= 0) {
+                        onSceneRequested(this, new SceneRequestEventArgs(typeof(end_scene)));
                     }
                 }
             }
@@ -382,7 +392,9 @@ namespace ww1defence {
             }
         }
 
-        public override void draw(RenderWindow window) {
+        public override void draw(RenderWindow window) {            
+            window.SetMouseCursorVisible(false);
+            
             window.SetView(sceneView);
 
             window.Draw(textWave);

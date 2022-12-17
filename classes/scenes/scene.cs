@@ -8,15 +8,41 @@ namespace ww1defence {
         public delegate void SceneRequestEventHandler(object? sender, SceneRequestEventArgs? e);
         public event SceneRequestEventHandler? sceneRequestEvent;
 
+        internal List<control> controls = new List<control>();
+
         public abstract void update(float delta);
 
         public abstract void draw(RenderWindow window);
 
 #region "Events"
-        public abstract void MouseMoved(object? sender, MouseMoveEventArgs? e);
-        public abstract void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e);
-        public abstract void MouseButtonPressed(object? sender, MouseButtonEventArgs? e);
-        public abstract void MouseButtonReleased(object? sender, MouseButtonEventArgs? e);
+        // public abstract void MouseMoved(object? sender, MouseMoveEventArgs? e);
+        // public abstract void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e);
+        // public abstract void MouseButtonPressed(object? sender, MouseButtonEventArgs? e);
+        // public abstract void MouseButtonReleased(object? sender, MouseButtonEventArgs? e);
+        
+        public virtual void MouseMoved(object? sender, MouseMoveEventArgs? e) {
+            foreach (control c in controls) {
+                c.Control_MouseMoved(sender, e);
+            }
+        }
+
+        public virtual void MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
+            foreach (control c in controls) {
+                c.Control_MouseButtonPressed(sender, e);
+            }
+        }
+
+        public virtual void MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
+            foreach (control c in controls) {
+                c.Control_MouseButtonReleased(sender, e);
+            }
+        }
+
+        public virtual void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
+            foreach (control c in controls) {
+                c.ControL_MouseWheelScrolled(sender, e);
+            }
+        }
 
         protected virtual void onSceneRequested(object? sender, SceneRequestEventArgs? e) {
             if (sceneRequestEvent != null) {

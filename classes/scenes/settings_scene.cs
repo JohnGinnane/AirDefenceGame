@@ -7,7 +7,6 @@ namespace ww1defence {
 
     public class settings_scene : scene
     {
-        private List<control> controls;
         private slider sldVolume;
 
         public settings_scene(RenderWindow window) {
@@ -50,30 +49,6 @@ namespace ww1defence {
 #region "Events"
         public void btnBack_Click(object? sender, EventArgs? e) {
             onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
-        }
-
-        public override void MouseMoved(object? sender, MouseMoveEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseMoved(sender, e);
-            }
-        }
-
-        public override void MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseButtonPressed(sender, e);
-            }
-        }
-
-        public override void MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseButtonReleased(sender, e);
-            }
-        }
-
-        public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
-            foreach (control c in controls) {
-                c.ControL_MouseWheelScrolled(sender, e);
-            }
         }
 #endregion
     }

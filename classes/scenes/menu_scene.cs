@@ -6,8 +6,6 @@ namespace ww1defence {
 
     public class menu_scene : scene
     {
-        private List<control> controls;
-
         public menu_scene(RenderWindow window) {
             window.SetMouseCursorVisible(true);
 
