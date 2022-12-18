@@ -63,7 +63,11 @@ namespace Global {
 
             newSprite.Origin = origin;
 
-            Sprites.Add(name, newSprite);
+            if (Sprites.ContainsKey(name)) {
+                Sprites[name] = newSprite;
+            } else {
+                Sprites.Add(name, newSprite);
+            }
 
             return newSprite;
         }
