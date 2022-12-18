@@ -7,8 +7,6 @@ namespace ww1defence {
     public class menu_scene : scene
     {
         public menu_scene(RenderWindow window) {
-            window.SetMouseCursorVisible(true);
-
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
@@ -41,6 +39,9 @@ namespace ww1defence {
         }
 
         public override void draw(RenderWindow window) {
+            window.SetMouseCursorVisible(true);
+            window.SetView(sceneView);
+
             foreach (control c in controls) {
                 c.draw(window);
             }
@@ -79,7 +80,7 @@ namespace ww1defence {
 
         public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
             foreach (control c in controls) {
-                c.ControL_MouseWheelScrolled(sender, e);
+                c.Control_MouseWheelScrolled(sender, e);
             }
         }
 #endregion

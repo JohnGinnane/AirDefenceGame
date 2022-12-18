@@ -7,10 +7,6 @@ using SFML.Window;
 namespace ww1defence {
     public class game_scene : scene
     {
-        // Rendering
-        //private RenderWindow window;
-        private View sceneView;
-
         // Waves        
         int wave = 0;
         int enemiesToSpawn = 0;
@@ -71,8 +67,6 @@ namespace ww1defence {
         }
         
         public game_scene(RenderWindow window) {
-            sceneView = new View(new FloatRect(0, 0, (float)Globals.ScreenSize.X, (float)Globals.ScreenSize.Y));
-
             //sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
             //sprCrosshair.Origin = new Vector2f(16, 16);
 
@@ -394,7 +388,6 @@ namespace ww1defence {
 
         public override void draw(RenderWindow window) {            
             window.SetMouseCursorVisible(false);
-            
             window.SetView(sceneView);
 
             window.Draw(textWave);

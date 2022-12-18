@@ -8,6 +8,8 @@ namespace ww1defence {
         public delegate void SceneRequestEventHandler(object? sender, SceneRequestEventArgs? e);
         public event SceneRequestEventHandler? sceneRequestEvent;
 
+        internal View sceneView = new View(Globals.ScreenSize/2f, Globals.ScreenSize);
+
         internal List<control> controls = new List<control>();
 
         public abstract void update(float delta);
@@ -15,10 +17,11 @@ namespace ww1defence {
         public abstract void draw(RenderWindow window);
 
 #region "Events"
-        // public abstract void MouseMoved(object? sender, MouseMoveEventArgs? e);
-        // public abstract void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e);
-        // public abstract void MouseButtonPressed(object? sender, MouseButtonEventArgs? e);
-        // public abstract void MouseButtonReleased(object? sender, MouseButtonEventArgs? e);
+        public virtual void WindowResized(object? sender, SizeEventArgs? e) {
+            sceneView.Center = Globals.ScreenSize/2f;
+            sceneView.Size = Globals.ScreenSize;
+            Console.WriteLine($"Resized window: {Globals.ScreenSize}");
+        }
         
         public virtual void MouseMoved(object? sender, MouseMoveEventArgs? e) {
             foreach (control c in controls) {
@@ -40,7 +43,7 @@ namespace ww1defence {
 
         public virtual void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
             foreach (control c in controls) {
-                c.ControL_MouseWheelScrolled(sender, e);
+                c.Control_MouseWheelScrolled(sender, e);
             }
         }
 

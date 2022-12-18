@@ -67,6 +67,7 @@ namespace ww1defence {
             window.MouseMoved += window_MouseMoved;
             window.MouseButtonPressed += window_MouseButtonPressed;
             window.MouseButtonReleased += window_MouseButtonReleased;
+            window.Resized += window_Resized;
 
             activeScenes = new List<scene>();
 
@@ -94,6 +95,12 @@ namespace ww1defence {
 #region "Events"
         public void window_CloseWindow(object? sender, EventArgs e) {
             window.Close();
+        }
+
+        public void window_Resized(object? sender, SizeEventArgs? e) {
+            if (e == null) { return; }
+            Globals.ScreenSize = new Vector2f(e.Width, e.Height);
+            curScene.WindowResized(sender, e);
         }
 
         public void window_MouseMoved(object? sender, MouseMoveEventArgs? e) {

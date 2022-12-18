@@ -7,8 +7,6 @@ namespace ww1defence {
         private label lblScore;
         private button btnExit;
         public end_scene(RenderWindow window) {
-            window.SetMouseCursorVisible(true);
-            
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
             float division = Globals.ScreenSize.Y / 3f;
 
@@ -38,6 +36,9 @@ namespace ww1defence {
 
         public override void draw(RenderWindow window)
         {
+            window.SetMouseCursorVisible(true);
+            window.SetView(sceneView);
+            
             foreach (control c in controls ){
                 c.draw(window);
             }

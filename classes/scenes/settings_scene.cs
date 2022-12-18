@@ -10,8 +10,6 @@ namespace ww1defence {
         private slider sldVolume;
 
         public settings_scene(RenderWindow window) {
-            window.SetMouseCursorVisible(true);
-
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
@@ -41,6 +39,9 @@ namespace ww1defence {
         }
 
         public override void draw(RenderWindow window) {
+            window.SetMouseCursorVisible(true);
+            window.SetView(sceneView);
+            
             foreach (control c in controls) {
                 c.draw(window);
             }
