@@ -6,7 +6,7 @@ namespace ww1defence {
 
     public class menu_scene : scene
     {
-        public menu_scene(RenderWindow window) {
+        public menu_scene(RenderWindow window, scene? requestedBy = null) {
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;

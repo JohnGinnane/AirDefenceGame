@@ -6,13 +6,24 @@ namespace ww1defence {
     public class end_scene : scene {
         private label lblScore;
         private button btnExit;
-        public end_scene(RenderWindow window) {
+
+        public end_scene(RenderWindow window, scene? requestedBy = null) {
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
             float division = Globals.ScreenSize.Y / 3f;
 
             lblScore = new label();
             lblScore.Size = new Vector2f(500, 50);
-            lblScore.Text = "Score: ";
+            
+            if (requestedBy != null) {
+                if (requestedBy.GetType() == typeof(game_scene)) {
+                    this.requestedBy = (scene)requestedBy;
+                    game_scene gameScene = (game_scene)this.requestedBy;
+                    lblScore.Text = $"Score: {gameScene.score}";
+                }
+            } else {
+                lblScore.Text = "Score: ???";
+            }
+
             lblScore.CharacterSize = 24;
             lblScore.Position = new Vector2f(halfScreenWidth + lblScore.Size.X / 2f, division * 1f);
             controls.Add(lblScore);

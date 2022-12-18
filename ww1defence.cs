@@ -35,7 +35,7 @@ namespace ww1defence {
                     scene? newScene = activeScenes.Find((x) => x.GetType() == e.targetScene);
 
                     if (newScene == null) {
-                        newScene = (scene?)Activator.CreateInstance(e.targetScene, window);
+                        newScene = (scene?)Activator.CreateInstance(e.targetScene, window, curScene);
 
                         if (newScene != null) {
                             newScene.sceneRequestEvent += SceneRequestHandler;
@@ -48,6 +48,12 @@ namespace ww1defence {
                     if (newScene != null) {
                         if (!e.unloadMe) {
                             activeScenes.Insert(0, curScene);
+                        }
+
+                        if (sender != null) {
+                            if (util.IsSameOrSubclass(typeof(scene), sender.GetType())) {
+                                newScene.requestedBy = (scene)sender;
+                            }
                         }
 
                         curScene = (scene)newScene;

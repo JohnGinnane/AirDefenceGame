@@ -6,6 +6,8 @@ namespace ww1defence {
 
     public abstract class scene {
         public delegate scene? SceneRequestEventHandler(object? sender, SceneRequestEventArgs? e);
+
+        public scene? requestedBy;
         public event SceneRequestEventHandler? sceneRequestEvent;
 
         internal View sceneView = new View(Globals.ScreenSize/2f, Globals.ScreenSize);

@@ -46,7 +46,7 @@ namespace ww1defence {
         private float playerHealth = 100f;
         private RectangleShape rsHealthBackground;
         private RectangleShape rsHealthCurrent;
-        private int score;
+        public int score;
 
         // Entities        
         private List<shell> shells;
@@ -70,7 +70,7 @@ namespace ww1defence {
             get { return explosions.FindAll((x) => x.isActive); }
         }
         
-        public game_scene(RenderWindow window) {
+        public game_scene(RenderWindow window, scene? requestedBy = null) {
             //sprCrosshair = new Sprite(textureSpritesheet, new IntRect(0, 64, 32, 32));
             //sprCrosshair.Origin = new Vector2f(16, 16);
 

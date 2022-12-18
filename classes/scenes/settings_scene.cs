@@ -9,7 +9,7 @@ namespace ww1defence {
     {
         private slider sldVolume;
 
-        public settings_scene(RenderWindow window) {
+        public settings_scene(RenderWindow window, scene? requestedBy = null) {
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
