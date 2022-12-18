@@ -22,7 +22,7 @@ namespace ww1defence {
         private List<scene> activeScenes;
 #endregion
 
-        public void SceneRequestHandler(object? sender, SceneRequestEventArgs? e) {
+        public scene SceneRequestHandler(object? sender, SceneRequestEventArgs? e) {
             // perhaps the scene request could specify a parent scene
             // this way the "Settings" scene can point BACK to the menu scene?
             if (e != null) {
@@ -54,6 +54,8 @@ namespace ww1defence {
                     }
                 }
             }
+
+            return curScene;
         }
 
         public ww1defence() {

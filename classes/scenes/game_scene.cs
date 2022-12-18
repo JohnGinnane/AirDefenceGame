@@ -7,10 +7,14 @@ using SFML.Window;
 namespace ww1defence {
     public class game_scene : scene
     {
+        // Game state
+        private float GAMETIME = 0f;
+        private float TIMESCALE = 1f;
+
         // Waves        
         int wave = 0;
         int enemiesToSpawn = 0;
-        DateTime nextEnemySpawn = DateTime.Now;
+        private float nextEnemySpawn = 0f;
         float enemiesSpawnRate = 0.5f; // per second
         Text textWave;
 
@@ -30,8 +34,8 @@ namespace ww1defence {
         private static float maxFlakTime = 500f;
         private static float flakScrollSpeed = 10f;
 
-        private DateTime flakLastFire;
-        private DateTime mgLastFire;
+        private float flakLastFire;
+        private float mgLastFire;
         private float mgInitialMaxSpread = 1f;
         private float mgMaxSpread = 1f;
         private float mgFinalMaxSpread = 45f; // why
@@ -110,12 +114,16 @@ namespace ww1defence {
             textWave.CharacterSize = 30;
             textWave.Position = new Vector2f(Globals.ScreenSize.X / 2f, Globals.ScreenSize.Y / 2f);
 
-            flakLastFire = DateTime.Now;
-            mgLastFire = DateTime.Now;
+            flakLastFire = 0f;
+            mgLastFire = 0f;
 
             shells = new List<shell>();
             enemies = new List<enemy>();
             explosions = new List<explosion>();
+        }
+
+        public void start() {
+            TIMESCALE = 1f;
         }
 
 #region "Functions"
@@ -140,17 +148,17 @@ namespace ww1defence {
         }
 
         public void handleWave() {
-            if (nextEnemySpawn < DateTime.Now && enemiesToSpawn > 0) {
+            if (nextEnemySpawn < GAMETIME && enemiesToSpawn > 0) {
                 spawnEnemy();
                 enemiesToSpawn--;
-                nextEnemySpawn = DateTime.Now.AddSeconds(1f / enemiesSpawnRate);
+                nextEnemySpawn = GAMETIME + 1f / enemiesSpawnRate;
             }
         }
         
         public void increaseWave() {
             wave += 1;
             enemiesToSpawn = (int)(10 + (Math.Pow(wave, 1.3)));
-            nextEnemySpawn = DateTime.Now;
+            nextEnemySpawn = GAMETIME;
 
             textWave.DisplayedString = "Wave " + wave.ToString();
             FloatRect textRect = textWave.GetLocalBounds();
@@ -188,7 +196,8 @@ namespace ww1defence {
             }
 
             // set last fire to be in the future to delay the first bomb being dropped
-            newEnemy.lastFire = DateTime.Now.AddSeconds(util.randfloat(4, 8));
+            //newEnemy.lastFire = DateTime.Now.AddSeconds(util.randfloat(4, 8));
+            newEnemy.lastFire = GAMETIME + util.randfloat(4, 8);
             newEnemy.isActive = true;
         }
 
@@ -207,14 +216,17 @@ namespace ww1defence {
 #region "Main"
         public override void update(float delta) {
             float mgSpreadNew = delta * -4f;
+            delta *= TIMESCALE;
+            GAMETIME += delta;
 
             if (Input.Keyboard["escape"].isPressed) {
+                TIMESCALE = 0f;
                 onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene), false));
             }
 
             if (Input.Mouse["left"].isPressed) {
-                if ((DateTime.Now - mgLastFire).Milliseconds >= bullet.fireRate) {
-                    mgLastFire = DateTime.Now;
+                if ((GAMETIME - mgLastFire) >= bullet.fireRate) {
+                    mgLastFire = GAMETIME;
                     bullet? fireThis = findInactive<bullet>(shells);
 
                     if (fireThis == null) {
@@ -227,22 +239,21 @@ namespace ww1defence {
                     Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
 
                     fireThis.fire(newPos, newVel);
-                    mgSpreadNew += 1000f / bullet.fireRate * delta * 4f;
+                    mgSpreadNew += 1f / bullet.fireRate * delta * 4f;
                 }
             }
 
             mgMaxSpread = Math.Clamp(mgMaxSpread + mgSpreadNew, mgInitialMaxSpread, mgFinalMaxSpread);
 
             if (Input.Mouse["right"].isPressed) {
-                if ((DateTime.Now - flakLastFire).Milliseconds >= flak.fireRate) {
-                    flakLastFire = DateTime.Now;
+                if ((GAMETIME - flakLastFire) >= flak.fireRate) {
+                    flakLastFire = GAMETIME;
                     flak? fireThis = findInactive<flak>(shells);
                     
-                    float timer = (flakTime * 1.1f - flakZoneThickness / 2f
-                                   + util.randfloat(flakZoneThickness / -2, flakZoneThickness / 2)) / flak.speed * 1000;
+                    float timer = GAMETIME + (flakTime + util.randfloat(flakZoneThickness / -2f, flakZoneThickness / 2f)) / flak.speed;
 
                     if (fireThis == null) {
-                        fireThis = new flak(DateTime.Now.AddMilliseconds(timer));
+                        fireThis = new flak(timer);
                         shells.Add(fireThis);
                     }
                     
@@ -250,7 +261,7 @@ namespace ww1defence {
                     Vector2f newVel = new Vector2f((float)Math.Cos(radians), (float)Math.Sin(radians)) * flak.speed;
                     Vector2f newPos = sprTurretGun.toWorld(new Vector2f(0, 20f));
                     
-                    fireThis.fire(newPos, newVel, DateTime.Now.AddMilliseconds(timer));
+                    fireThis.fire(newPos, newVel, timer);
                 }
             }
 
@@ -322,7 +333,7 @@ namespace ww1defence {
                 if (s.GetType() == typeof(flak)) {
                     flak f = (flak)s;
 
-                    if (DateTime.Now >= f.explodeTime) {
+                    if (GAMETIME >= f.explodeTime) {
                         explode(f.Position,
                                 flak.explosionRadius,
                                 flak.explosionDuration,
@@ -361,8 +372,8 @@ namespace ww1defence {
 
             // check if enemies can attack
             foreach (enemy e in ActiveAliveEnemies) {
-                if (e.lifeState == enemy.eLifeState.alive && (DateTime.Now - e.lastFire).TotalMilliseconds >= smallBomb.fireRate) {
-                    e.lastFire = DateTime.Now;
+                if (e.lifeState == enemy.eLifeState.alive && (GAMETIME - e.lastFire) >= smallBomb.fireRate) {
+                    e.lastFire = GAMETIME;
 
                     smallBomb? fireThis = findInactive<smallBomb>(shells);
 
@@ -386,7 +397,7 @@ namespace ww1defence {
             }
         }
 
-        public override void draw(RenderWindow window) {            
+        public override void draw(RenderWindow window) {
             window.SetMouseCursorVisible(false);
             window.SetView(sceneView);
 

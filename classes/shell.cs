@@ -165,7 +165,7 @@ namespace ww1defence {
         public new float damage = 25f;
         public static float explosionRadius = 25f;
         public static float explosionDuration = 2f;
-        public static float fireRate = 1000 * 5; // 1 every 5 seconds
+        public static float fireRate = 5; // 1 every 5 seconds
         
         public smallBomb(Sprite sprite) : base() {
             setSprite(sprite);
@@ -192,16 +192,16 @@ namespace ww1defence {
             }
         }
 
-        public static float fireRate = 1000f / 4f; // 4 shots per second
+        public static float fireRate = 1f / 4f; // 4 shots per second
         public static float speed = 300f;
         
         public static float explosionRadius = 15f;
         public static float explosionDuration = 1f;
         new public float damage = 35f;
         
-        internal DateTime explodeTime;
+        internal float explodeTime;
 
-        public flak(DateTime explodeTime) : base(new Vector2f(10, 4)) {
+        public flak(float explodeTime) : base(new Vector2f(10, 4)) {
             rsShell.OutlineColor = Color.Black;
             rsShell.OutlineThickness = 1f;
             rsShell.FillColor = Colour.LightYellow;
@@ -209,7 +209,7 @@ namespace ww1defence {
             this.explodeTime = explodeTime;
         }
 
-        public void fire(Vector2f position, Vector2f velocity, DateTime explodeTime) {
+        public void fire(Vector2f position, Vector2f velocity, float explodeTime) {
             base.fire(position, velocity);
             this.explodeTime = explodeTime;
             Globals.playSound(FireSFX, pitch: util.randfloat(0.95f, 1.05f));
@@ -228,8 +228,8 @@ namespace ww1defence {
             }
         }
 
-        public static float speed = 600f;
-        public static float fireRate = 1000f / 10f;
+        public static float speed = 600f; // 600 pixels per second
+        public static float fireRate = 1f / 10f;
         
         new public float damage = 2f;
 

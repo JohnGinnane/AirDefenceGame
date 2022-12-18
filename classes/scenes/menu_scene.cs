@@ -49,7 +49,20 @@ namespace ww1defence {
 
 #region "Events"
         public void btnPlay_Click(object? sender, EventArgs? e) {
-            onSceneRequested(this, new SceneRequestEventArgs(typeof(game_scene)));
+            scene? newScene = onSceneRequested(this, new SceneRequestEventArgs(typeof(game_scene)));
+
+            if (newScene != null) {
+                if (util.IsSameOrSubclass(typeof(game_scene), newScene.GetType())) {
+                    game_scene gameScene = (game_scene)newScene;
+                    gameScene.start();
+                } else {
+                    Exception ex = new Exception("Requested scene was not a game scene!");
+                    throw ex;
+                }
+            } else {
+                Exception ex = new Exception("Request game scene not returned!");
+                throw ex;
+            }
         }
 
         public void btnSettings_Click(object? sender, EventArgs? e) {

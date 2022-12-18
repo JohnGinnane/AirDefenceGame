@@ -36,6 +36,8 @@ namespace Global {
             Random r = new Random((int)(DateTime.Now.Ticks&Int32.MaxValue));
             return min + (float)r.NextDouble() * (max - min);
         }
+        
+        
 
         public static byte randbyte()  {
             Random r = new Random((int)(DateTime.Now.Ticks%Int32.MaxValue));

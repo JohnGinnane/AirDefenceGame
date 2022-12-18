@@ -12,7 +12,7 @@ namespace ww1defence {
         public eLifeState lifeState;
         public float lifeStateTime;
 
-        public DateTime lastFire;
+        public float lastFire;
 
         public enemy(Sprite sprite, Vector2f position, Vector2f velocity) : base() {
             this.sprite = sprite;

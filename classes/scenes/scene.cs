@@ -5,7 +5,7 @@ using Global;
 namespace ww1defence {
 
     public abstract class scene {
-        public delegate void SceneRequestEventHandler(object? sender, SceneRequestEventArgs? e);
+        public delegate scene? SceneRequestEventHandler(object? sender, SceneRequestEventArgs? e);
         public event SceneRequestEventHandler? sceneRequestEvent;
 
         internal View sceneView = new View(Globals.ScreenSize/2f, Globals.ScreenSize);
@@ -47,10 +47,12 @@ namespace ww1defence {
             }
         }
 
-        protected virtual void onSceneRequested(object? sender, SceneRequestEventArgs? e) {
+        protected virtual scene? onSceneRequested(object? sender, SceneRequestEventArgs? e) {
             if (sceneRequestEvent != null) {
-                sceneRequestEvent?.Invoke(sender, e);
+                return sceneRequestEvent?.Invoke(sender, e);
             }
+
+            return null;
         }
 #endregion
     }
