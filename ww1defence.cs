@@ -16,7 +16,6 @@ namespace ww1defence {
         float timeStep = 1f / 60f;
         float frameRate = 1f / 60f;
 
-
         // scene management
         private scene curScene;
         private List<scene> activeScenes;
@@ -76,7 +75,7 @@ namespace ww1defence {
             window.MouseButtonPressed += window_MouseButtonPressed;
             window.MouseButtonReleased += window_MouseButtonReleased;
             window.Resized += window_Resized;
-
+            
             activeScenes = new List<scene>();
 
             // Load the menu scene as the first scene
@@ -107,8 +106,8 @@ namespace ww1defence {
 
         public void window_Resized(object? sender, SizeEventArgs? e) {
             if (e == null) { return; }
-            Globals.ScreenSize = new Vector2f(e.Width, e.Height);
-            curScene.WindowResized(sender, e);
+            // Globals.ScreenSize = new Vector2f(e.Width, e.Height);
+            // curScene.WindowResized(sender, e);
         }
 
         public void window_MouseMoved(object? sender, MouseMoveEventArgs? e) {

@@ -30,9 +30,13 @@ namespace ww1defence {
             btnBack.Position = new Vector2f(halfScreenWidth - btnBack.Size.X/2f, division * 3f);
             btnBack.Click += btnBack_Click;
             controls.Add(btnBack);
+
+            sceneView= new View(Globals.ScreenSize / 2f, Globals.ScreenSize);
         }
 
         public override void update(float delta) {
+            base.update(delta);
+            
             if (sldVolume != null) {
                 Globals.masterVolumeMulti = sldVolume.Value;
             }

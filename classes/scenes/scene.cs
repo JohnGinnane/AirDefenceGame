@@ -1,5 +1,6 @@
 using SFML.Graphics;
 using SFML.Window;
+using SFML.System;
 using Global;
 
 namespace ww1defence {
@@ -11,18 +12,46 @@ namespace ww1defence {
         public event SceneRequestEventHandler? sceneRequestEvent;
 
         internal View sceneView = new View(Globals.ScreenSize/2f, Globals.ScreenSize);
+        internal Vector2f lastViewPos;
+        //internal Vector2f cameraPos;
+
+        public float SceneZoom {
+            get {
+                return sceneView.Size.X / Globals.ScreenSize.X;
+            }
+        }
+
 
         internal List<control> controls = new List<control>();
 
-        public abstract void update(float delta);
+        internal View? mouseLockedToView;
+
+        public virtual void update(float delta) {
+
+
+            if (Input.Mouse["middle"].justPressed && mouseLockedToView == null) {
+                Console.WriteLine("moving camera");
+                mouseLockedToView = sceneView;
+                lastViewPos = sceneView.Center + (Vector2f)Input.Mouse.Position * SceneZoom;
+            }
+
+            if (Input.Mouse["middle"].isPressed && mouseLockedToView != null) {
+                sceneView.Center = lastViewPos - (Vector2f)Input.Mouse.Position * SceneZoom;
+            }            
+
+            if (Input.Mouse["middle"].justReleased && mouseLockedToView != null) {
+                Console.WriteLine("stopped moving camera");
+                mouseLockedToView = null;
+            }
+        }
 
         public abstract void draw(RenderWindow window);
 
 #region "Events"
         public virtual void WindowResized(object? sender, SizeEventArgs? e) {
-            sceneView.Center = Globals.ScreenSize/2f;
-            sceneView.Size = Globals.ScreenSize;
-            Console.WriteLine($"Resized window: {Globals.ScreenSize}");
+            // sceneView.Center = Globals.ScreenSize/2f;
+            // sceneView.Size = Globals.ScreenSize;
+            // Console.WriteLine($"Resized window: {Globals.ScreenSize}");            
         }
         
         public virtual void MouseMoved(object? sender, MouseMoveEventArgs? e) {

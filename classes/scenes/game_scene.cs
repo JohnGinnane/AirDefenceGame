@@ -455,18 +455,6 @@ namespace ww1defence {
         #endregion
 
         #region "Events"
-        public override void MouseMoved(object? sender, MouseMoveEventArgs? e) {
-            
-        }
-
-        public override void MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
-            
-        }
-
-        public override void MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
-
-        }
-
         public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
             if (e == null) { return; }
 

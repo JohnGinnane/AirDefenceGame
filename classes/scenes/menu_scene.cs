@@ -32,12 +32,10 @@ namespace ww1defence {
             btnQuit.Position = new SFML.System.Vector2f(halfScreenWidth - btnQuit.Size.X/2f, division * 3f);
             btnQuit.Click += btnQuit_Click;
             controls.Add(btnQuit);
-        }
-
-        public override void update(float delta) {
             
+            sceneView = new View(Globals.ScreenSize / 2f, Globals.ScreenSize);
         }
-
+        
         public override void draw(RenderWindow window) {
             window.SetMouseCursorVisible(true);
             window.SetView(sceneView);
@@ -71,30 +69,6 @@ namespace ww1defence {
 
         public void btnQuit_Click(object? sender, EventArgs? e) {
             onSceneRequested(this, new SceneRequestEventArgs(null));
-        }
-
-        public override void MouseMoved(object? sender, MouseMoveEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseMoved(sender, e);
-            }
-        }
-
-        public override void MouseButtonPressed(object? sender, MouseButtonEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseButtonPressed(sender, e);
-            }
-        }
-
-        public override void MouseButtonReleased(object? sender, MouseButtonEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseButtonReleased(sender, e);
-            }
-        }
-
-        public override void MouseWheelScrolled(object? sender, MouseWheelScrollEventArgs? e) {
-            foreach (control c in controls) {
-                c.Control_MouseWheelScrolled(sender, e);
-            }
         }
 #endregion
     }
