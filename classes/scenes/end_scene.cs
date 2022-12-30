@@ -4,26 +4,36 @@ using SFML.System;
 
 namespace ww1defence {
     public class end_scene : scene {
+        private int score;
+
         private label lblScore;
         private button btnExit;
 
         public end_scene(RenderWindow window, scene? requestedBy = null) {
-            float halfScreenWidth = Globals.ScreenSize.X / 2f;
-            float division = Globals.ScreenSize.Y / 3f;
-
-            lblScore = new label();
-            lblScore.Size = new Vector2f(500, 50);
-            
             if (requestedBy != null) {
                 if (requestedBy.GetType() == typeof(game_scene)) {
                     this.requestedBy = (scene)requestedBy;
                     game_scene gameScene = (game_scene)this.requestedBy;
-                    lblScore.Text = $"Score: {gameScene.score}";
+                    score = gameScene.score;
                 }
-            } else {
-                lblScore.Text = "Score: ???";
             }
 
+            setControls();
+        }
+
+        public void btnExit_Click(object? sender, EventArgs? e) {
+            onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
+        }
+
+        public override void setControls()
+        {
+            float halfScreenWidth = Globals.ScreenSize.X / 2f;
+            float division = Globals.ScreenSize.Y / 3f;
+            
+            lblScore = new label();
+            lblScore.Size = new Vector2f(500, 50);
+            
+            lblScore.Text = $"Score: {score}";
             lblScore.CharacterSize = 24;
             lblScore.Position = new Vector2f(halfScreenWidth + lblScore.Size.X / 2f, division * 1f);
             controls.Add(lblScore);
@@ -34,10 +44,6 @@ namespace ww1defence {
             btnExit.Text = "Exit";
             btnExit.Click += btnExit_Click;
             controls.Add(btnExit);
-        }
-
-        public void btnExit_Click(object? sender, EventArgs? e) {
-            onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
         }
 
         public override void update(float delta)

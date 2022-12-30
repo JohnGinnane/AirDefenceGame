@@ -120,6 +120,12 @@ namespace ww1defence {
             shells = new List<shell>();
             enemies = new List<enemy>();
             explosions = new List<explosion>();
+
+            setControls();
+        }
+
+        public override void setControls() {
+
         }
 
         public void start() {
@@ -221,7 +227,7 @@ namespace ww1defence {
 
             if (Input.Keyboard["escape"].isPressed) {
                 TIMESCALE = 0f;
-                onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene), false));
+                onSceneRequested(this, new SceneRequestEventArgs(typeof(pause_scene), false));
             }
 
             if (Input.Mouse["left"].isPressed) {

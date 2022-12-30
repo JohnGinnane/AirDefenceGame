@@ -7,9 +7,14 @@ namespace ww1defence {
 
     public class settings_scene : scene
     {
-        private slider sldVolume;
+        private slider? sldVolume;
 
         public settings_scene(RenderWindow window, scene? requestedBy = null) {
+            setControls();
+        }
+
+        public override void setControls()
+        {
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
@@ -31,7 +36,7 @@ namespace ww1defence {
             btnBack.Click += btnBack_Click;
             controls.Add(btnBack);
 
-            sceneView= new View(Globals.ScreenSize / 2f, Globals.ScreenSize);
+            sceneView = new View(Globals.ScreenSize / 2f, Globals.ScreenSize);
         }
 
         public override void update(float delta) {
@@ -53,7 +58,11 @@ namespace ww1defence {
 
 #region "Events"
         public void btnBack_Click(object? sender, EventArgs? e) {
-            onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
+            if (requestedBy != null) {
+                onSceneRequested(this, new SceneRequestEventArgs(requestedBy.GetType()));
+            } else {
+                onSceneRequested(this, new SceneRequestEventArgs(typeof(menu_scene)));
+            }
         }
 #endregion
     }

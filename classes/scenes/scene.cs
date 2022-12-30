@@ -27,8 +27,6 @@ namespace ww1defence {
         internal View? mouseLockedToView;
 
         public virtual void update(float delta) {
-
-
             if (Input.Mouse["middle"].justPressed && mouseLockedToView == null) {
                 Console.WriteLine("moving camera");
                 mouseLockedToView = sceneView;
@@ -47,11 +45,12 @@ namespace ww1defence {
 
         public abstract void draw(RenderWindow window);
 
+        public abstract void setControls();
+
 #region "Events"
         public virtual void WindowResized(object? sender, SizeEventArgs? e) {
-            // sceneView.Center = Globals.ScreenSize/2f;
-            // sceneView.Size = Globals.ScreenSize;
-            // Console.WriteLine($"Resized window: {Globals.ScreenSize}");            
+            if (e == null) { return; }
+            setControls();
         }
         
         public virtual void MouseMoved(object? sender, MouseMoveEventArgs? e) {

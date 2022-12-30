@@ -105,9 +105,11 @@ namespace ww1defence {
         }
 
         public void window_Resized(object? sender, SizeEventArgs? e) {
+            // This function is called AFTER a window has been resized
+            // We should change the view to match the new dimensions
             if (e == null) { return; }
-            // Globals.ScreenSize = new Vector2f(e.Width, e.Height);
-            // curScene.WindowResized(sender, e);
+            Globals.ScreenSize = new Vector2f(e.Width, e.Height);
+            curScene.WindowResized(sender, e);
         }
 
         public void window_MouseMoved(object? sender, MouseMoveEventArgs? e) {

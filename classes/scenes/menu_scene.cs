@@ -1,12 +1,17 @@
 using SFML.Graphics;
 using SFML.Window;
 using Global;
+using SFML.System;
 
 namespace ww1defence {   
 
     public class menu_scene : scene
     {
         public menu_scene(RenderWindow window, scene? requestedBy = null) {
+            setControls();
+        }
+
+        public override void setControls() {
             controls = new List<control>();
 
             float halfScreenWidth = Globals.ScreenSize.X / 2f;
@@ -14,22 +19,22 @@ namespace ww1defence {
 
             button btnPlay = new button();
             btnPlay.Text = "Play";
-            btnPlay.Size = new SFML.System.Vector2f(100, 50);
-            btnPlay.Position = new SFML.System.Vector2f(halfScreenWidth - btnPlay.Size.X/2f, division * 1f);
+            btnPlay.Size = new Vector2f(100, 50);
+            btnPlay.Position = new Vector2f(halfScreenWidth - btnPlay.Size.X/2f, division * 1f);
             btnPlay.Click += btnPlay_Click;
             controls.Add(btnPlay);
 
             button btnSettings = new button();
             btnSettings.Text = "Settings";
-            btnSettings.Size = new SFML.System.Vector2f(150, 50);
-            btnSettings.Position = new SFML.System.Vector2f(halfScreenWidth - btnSettings.Size.X/2f, division * 2f);
+            btnSettings.Size = new Vector2f(150, 50);
+            btnSettings.Position = new Vector2f(halfScreenWidth - btnSettings.Size.X/2f, division * 2f);
             btnSettings.Click += btnSettings_Click;
             controls.Add(btnSettings);
 
             button btnQuit = new button();
             btnQuit.Text = "Quit";
-            btnQuit.Size = new SFML.System.Vector2f(100, 50);
-            btnQuit.Position = new SFML.System.Vector2f(halfScreenWidth - btnQuit.Size.X/2f, division * 3f);
+            btnQuit.Size = new Vector2f(100, 50);
+            btnQuit.Position = new Vector2f(halfScreenWidth - btnQuit.Size.X/2f, division * 3f);
             btnQuit.Click += btnQuit_Click;
             controls.Add(btnQuit);
             

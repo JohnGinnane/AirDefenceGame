@@ -15,12 +15,32 @@ namespace Global {
             get { return dimensions; }
             set { dimensions = value; }
         }
+
+        private Vector2f relPos;
+        public Vector2f RelPos {
+            get {
+                return relPos;
+            }
+        }
         
         private Vector2f position;
         public virtual Vector2f Position {
             get { return position; }
             set {
                 position = value;
+
+                if (Globals.ScreenSize.X == 0) {
+                    relPos.X = 0;
+                } else {
+                    relPos.X = position.X / Globals.ScreenSize.X;
+                }
+
+                if (Globals.ScreenSize.Y == 0) {
+                    relPos.Y = 0;
+                } else {
+                    relPos.Y = position.Y / Globals.ScreenSize.Y;
+                }
+
                 dimensions.Left = value.X;
                 dimensions.Top = value.Y;
             }
